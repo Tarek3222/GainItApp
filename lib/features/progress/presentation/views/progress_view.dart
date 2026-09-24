@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/route_paths.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
-import '../../../../core/utils/formatters.dart';
+import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/trend_chart.dart';
@@ -63,7 +63,7 @@ class _BodyWeightSection extends StatelessWidget {
             trailing: summary == null
                 ? null
                 : Text(
-                    Formatters.kg(summary.latest.weightKg),
+                    context.units.weight(summary.latest.weightKg),
                     style: theme.textTheme.titleMedium,
                   ),
           ),
@@ -75,7 +75,10 @@ class _BodyWeightSection extends StatelessWidget {
                 showDots: false,
                 points: [
                   for (final p in dashboard.weightTrend)
-                    (date: p.date, value: p.weightKg),
+                    (
+                      date: p.date,
+                      value: context.units.toDisplayWeight(p.weightKg),
+                    ),
                 ],
               ),
             ],

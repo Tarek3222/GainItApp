@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../app/theme/app_typography.dart';
+import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/presentation/view_state.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
@@ -60,11 +61,11 @@ class _Body extends StatefulWidget {
 class _BodyState extends State<_Body> {
   _Metric _metric = _Metric.oneRepMax;
 
-  double _value(ExerciseTrendPoint p) => switch (_metric) {
-    _Metric.oneRepMax => p.estimatedOneRepMax,
-    _Metric.topWeight => p.topWeight,
+  double _value(UnitFormat units, ExerciseTrendPoint p) => switch (_metric) {
+    _Metric.oneRepMax => units.toDisplayWeight(p.estimatedOneRepMax),
+    _Metric.topWeight => units.toDisplayWeight(p.topWeight),
     _Metric.reps => p.totalReps.toDouble(),
-    _Metric.volume => p.volumeLoad,
+    _Metric.volume => units.toDisplayWeight(p.volumeLoad),
   };
 
   @override
@@ -79,14 +80,14 @@ class _BodyState extends State<_Body> {
           children: [
             _Stat(
               label: 'Best weight',
-              value: Formatters.kg(progress.bestWeight!),
+              value: context.units.weight(progress.bestWeight!),
             ),
             const SizedBox(width: AppSpacing.sm),
             _Stat(label: 'Best reps', value: '${progress.bestReps}'),
             const SizedBox(width: AppSpacing.sm),
             _Stat(
               label: 'Est. 1RM',
-              value: Formatters.kg(progress.bestOneRepMax!),
+              value: context.units.weight(progress.bestOneRepMax!),
             ),
           ],
         ),
@@ -116,7 +117,7 @@ class _BodyState extends State<_Body> {
                     color: theme.colorScheme.primary,
                     points: [
                       for (final p in progress.trend)
-                        (date: p.date, value: _value(p)),
+                        (date: p.date, value: _value(context.units, p)),
                     ],
                   ),
                 ],
@@ -131,7 +132,7 @@ class _BodyState extends State<_Body> {
             contentPadding: EdgeInsets.zero,
             title: Text(Formatters.fullDate(session.date)),
             trailing: Text(
-              '${Formatters.kg(session.topWeight)} · '
+              '${context.units.weight(session.topWeight)} · '
               '${Formatters.repsList(session.sets.map((s) => s.reps))}',
               style: theme.textTheme.titleSmall,
             ),

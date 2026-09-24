@@ -3,13 +3,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gainit/app/app.dart';
 import 'package:gainit/app/router/app_router.dart';
 import 'package:gainit/core/di/injection.dart';
+import 'package:gainit/core/domain/entities/enums.dart';
 import 'package:gainit/core/domain/services/day_change_source.dart';
 import 'package:gainit/core/domain/services/notification_scheduler.dart';
 import 'package:gainit/core/storage/hive_storage.dart';
 import 'package:gainit/core/storage/storage_bootstrap.dart';
 import 'package:hive_ce/hive_ce.dart';
 
+import '../helpers/fake_media_store.dart';
 import '../helpers/fixed_clock.dart';
+import '../helpers/scroll.dart';
 
 class _NoDayChanges implements DayChangeSource {
   @override
@@ -54,6 +57,7 @@ void main() {
       notifications: _FakeNotifications(),
       clock: clock,
       dayChanges: _NoDayChanges(),
+      media: FakeMediaStore(),
     );
   });
 
@@ -72,19 +76,16 @@ void main() {
     // Onboarding (first launch).
     expect(find.text('Welcome to GainIt'), findsOneWidget);
     await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Tarek');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Height'), '178');
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Weight'),
-      '72.4',
-    );
-    await tester.ensureVisible(find.text('Start training'));
+    // Confirm the suggested height, weight and age (170 cm, 70 kg, 25).
+    await confirmPickers(tester, ['Use 170 cm', 'Use 70 kg', 'Use 25 years']);
+    await scrollPageToEnd(tester);
     await tester.tap(find.text('Start training'));
     await tester.pumpAndSettle();
 
     // Home answers "what is next" and shows the weigh-in.
     expect(find.text('Good evening, Tarek'), findsOneWidget);
     expect(find.text('Legs'), findsOneWidget);
-    expect(find.text('72.4 kg'), findsOneWidget);
+    expect(find.text('70 kg'), findsOneWidget);
 
     // Start today's workout.
     await tester.tap(find.text('Start workout'));
@@ -145,6 +146,16 @@ void main() {
     await tester.tap(find.text('Profile'));
     await tester.pumpAndSettle();
     expect(find.text('Tarek'), findsOneWidget);
+    expect(find.textContaining('170 cm · 25 years'), findsOneWidget);
+
+    // Switching to imperial changes every displayed weight and height.
+    await tester.tap(find.text('lb · ft'));
+    await tester.pumpAndSettle();
+    expect(storage.profile.values.single.unitSystem, UnitSystem.imperial);
+    expect(find.textContaining('5′7″ · 25 years'), findsOneWidget);
+    await tester.tap(find.text('Home'));
+    await tester.pumpAndSettle();
+    expect(find.text('154.3 lb'), findsOneWidget);
   });
 
   testWidgets('interrupted workout can be resumed; secondary screens render', (
@@ -157,9 +168,8 @@ void main() {
     await tester.pumpWidget(GainItApp(router: createRouter()));
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Sam');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Height'), '180');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Weight'), '80');
-    await tester.ensureVisible(find.text('Start training'));
+    await confirmPickers(tester, ['Use 170 cm', 'Use 70 kg', 'Use 25 years']);
+    await scrollPageToEnd(tester);
     await tester.tap(find.text('Start training'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Start workout'));
@@ -226,6 +236,6 @@ void main() {
     await tester.tap(find.text('BODY WEIGHT'));
     await tester.pumpAndSettle();
     expect(find.text('Log weight'), findsOneWidget);
-    expect(find.text('80 kg'), findsWidgets);
+    expect(find.text('70 kg'), findsWidgets);
   });
 }

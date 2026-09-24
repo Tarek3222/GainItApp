@@ -85,6 +85,7 @@ void main() {
       name: 'Tarek',
       heightCm: 178,
       weightKg: 72,
+      age: 30,
       goal: TrainingGoal.gainMuscle,
       trainingStartDate: DateTime(2026, 3, 1),
     );

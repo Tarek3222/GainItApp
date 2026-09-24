@@ -8,6 +8,7 @@ import '../../../../app/theme/app_tokens.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../core/domain/training/performance.dart';
 import '../../../../core/presentation/action_outcome.dart';
+import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/state_views.dart';
@@ -200,14 +201,14 @@ class _BodyWeightCard extends StatelessWidget {
                 Text(
                   summary == null
                       ? '—'
-                      : Formatters.kg(summary.latest.weightKg),
+                      : context.units.weight(summary.latest.weightKg),
                   style: AppTypography.metricMedium.copyWith(
                     color: theme.colorScheme.onSurface,
                   ),
                 ),
                 if (change != null)
                   Text(
-                    '${Formatters.signedKg(change)} / '
+                    '${context.units.signedWeight(change)} / '
                     '${summary!.periodDays ~/ 7} wk',
                     style: theme.textTheme.bodySmall,
                   ),
@@ -266,8 +267,8 @@ class _LastProgressCard extends StatelessWidget {
 
   final HomeProgress progress;
 
-  static String _describe(ExerciseSessionPerformance p) =>
-      '${Formatters.weight(p.topWeight)}kg '
+  static String _describe(UnitFormat units, ExerciseSessionPerformance p) =>
+      '${units.weight(p.topWeight)} '
       '${Formatters.repsList(p.sets.map((s) => s.reps))}';
 
   @override
@@ -284,8 +285,9 @@ class _LastProgressCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.xxs),
           Text(
             previous == null
-                ? _describe(progress.current)
-                : '${_describe(previous)} → ${_describe(progress.current)}',
+                ? _describe(context.units, progress.current)
+                : '${_describe(context.units, previous)} → '
+                      '${_describe(context.units, progress.current)}',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: progress.comparison.isImprovement
                   ? context.semanticColors.success

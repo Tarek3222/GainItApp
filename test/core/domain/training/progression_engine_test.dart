@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gainit/core/domain/entities/enums.dart';
 import 'package:gainit/core/domain/training/performance.dart';
 import 'package:gainit/core/domain/training/progression_engine.dart';
+import 'package:gainit/core/domain/units/unit_converter.dart';
 
 ExerciseSessionPerformance session(
   List<(double, int)> sets, {
@@ -223,5 +225,55 @@ void main() {
       expect(ProgressionEngine.roundDownToStep(36, 2.5), 35);
       expect(ProgressionEngine.roundDownToStep(30, 2.5), 30);
     });
+  });
+
+  group('imperial progression', () {
+    const oneKgImperial = ProgressionConfig(
+      workingSets: 3,
+      repMin: 6,
+      repMax: 10,
+      weightStep: 1,
+      unitSystem: UnitSystem.imperial,
+    );
+    double lb(double pounds) => UnitConverter.lbToKg(pounds);
+    double inPounds(double? kg) =>
+        double.parse(UnitConverter.kgToLb(kg!).toStringAsFixed(2));
+
+    test('adds a whole-pound step (1 kg ≈ 2 lb) on the lb grid', () {
+      final result = engine.recommend(
+        config: oneKgImperial,
+        history: [
+          session([(lb(132), 10), (lb(132), 10), (lb(132), 10)]),
+        ],
+      );
+
+      expect(result.type, RecommendationType.increaseWeight);
+      expect(inPounds(result.suggestedWeight), 134);
+      expect(inPounds(result.previousWeight), 132);
+    });
+
+    test('keeps the logged pound value when adding reps', () {
+      final result = engine.recommend(
+        config: oneKgImperial,
+        history: [
+          session([(lb(135), 8), (lb(135), 7), (lb(135), 7)]),
+        ],
+      );
+
+      expect(result.type, RecommendationType.addReps);
+      expect(inPounds(result.suggestedWeight), 135);
+      expect(result.targetReps, 8);
+    });
+  });
+
+  test('loads within 0.01 kg count as the same weight', () {
+    final result = engine.recommend(
+      config: bench,
+      history: [
+        session([(59.874, 10), (59.87401, 10), (59.874, 10)]),
+      ],
+    );
+
+    expect(result.type, RecommendationType.increaseWeight);
   });
 }

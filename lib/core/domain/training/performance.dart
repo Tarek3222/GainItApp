@@ -38,7 +38,8 @@ class ExerciseSessionPerformance extends Equatable {
   int get totalRepsAtTopWeight {
     final top = topWeight;
     return sets
-        .where((s) => s.weight == top)
+        // Tolerant: unit conversion leaves tiny floating-point differences.
+        .where((s) => (s.weight - top).abs() < 0.01)
         .fold<int>(0, (sum, s) => sum + s.reps);
   }
 

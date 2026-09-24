@@ -5,6 +5,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../core/presentation/action_outcome.dart';
+import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/presentation/view_state.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
@@ -72,6 +73,7 @@ class _Body extends StatelessWidget {
     final theme = Theme.of(context);
     final semantic = context.semanticColors;
     final summary = overview.summary!;
+    final units = context.units;
     final series = [
       ChartSeries(
         label: 'Weigh-ins',
@@ -79,7 +81,8 @@ class _Body extends StatelessWidget {
         showDots: true,
         dashed: true,
         points: [
-          for (final p in overview.points) (date: p.date, value: p.weightKg),
+          for (final p in overview.points)
+            (date: p.date, value: units.toDisplayWeight(p.weightKg)),
         ],
       ),
       ChartSeries(
@@ -87,7 +90,8 @@ class _Body extends StatelessWidget {
         color: theme.colorScheme.primary,
         showDots: false,
         points: [
-          for (final p in overview.trend) (date: p.date, value: p.weightKg),
+          for (final p in overview.trend)
+            (date: p.date, value: units.toDisplayWeight(p.weightKg)),
         ],
       ),
     ];
@@ -105,14 +109,14 @@ class _Body extends StatelessWidget {
             children: [
               const SectionLabel('Current'),
               Text(
-                Formatters.kg(summary.latest.weightKg),
+                context.units.weight(summary.latest.weightKg),
                 style: AppTypography.metricLarge.copyWith(
                   color: theme.colorScheme.onSurface,
                 ),
               ),
               if (summary.changeOverPeriod != null)
                 Text(
-                  '${Formatters.signedKg(summary.changeOverPeriod!)} '
+                  '${context.units.signedWeight(summary.changeOverPeriod!)} '
                   '/ ${summary.periodDays ~/ 7} wk',
                   style: theme.textTheme.bodySmall,
                 ),
@@ -140,7 +144,7 @@ class _Body extends StatelessWidget {
             child: ListTile(
               title: Text(Formatters.fullDate(entry.measuredAt)),
               trailing: Text(
-                Formatters.kg(entry.weightKg),
+                context.units.weight(entry.weightKg),
                 style: theme.textTheme.titleMedium,
               ),
             ),

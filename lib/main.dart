@@ -2,11 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'app/app.dart';
 import 'app/router/app_router.dart';
 import 'app/theme/app_theme.dart';
 import 'core/di/injection.dart';
+import 'core/services/id_generator.dart';
+import 'core/services/local_media_store.dart';
 import 'core/services/local_notification_service.dart';
 import 'core/storage/hive_storage.dart';
 import 'core/storage/storage_bootstrap.dart';
@@ -24,7 +27,21 @@ Future<void> main() async {
     // Notifications are optional; never block startup on them.
     unawaited(notifications.init().catchError((Object _) {}));
 
-    configureDependencies(storage: storage, notifications: notifications);
+    // Resolved on every launch: on iOS the documents path changes after an
+    // app update, so only file names are stored.
+    final documents = await getApplicationDocumentsDirectory();
+    final temporary = await getTemporaryDirectory();
+    final media = LocalMediaStore(
+      const IdGenerator(),
+      directory: '${documents.path}/media',
+      pickerCacheDirectory: temporary.path,
+    );
+
+    configureDependencies(
+      storage: storage,
+      notifications: notifications,
+      media: media,
+    );
     runApp(GainItApp(router: createRouter()));
   } on Object catch (error, stackTrace) {
     FlutterError.reportError(

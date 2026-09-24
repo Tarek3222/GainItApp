@@ -1,5 +1,6 @@
 import '../../../../core/domain/entities/app_settings.dart';
 import '../../../../core/domain/entities/user_profile.dart';
+import '../../../../core/domain/services/media_store.dart';
 import '../../../../core/presentation/action_outcome.dart';
 import '../../../../core/presentation/view_state.dart';
 import '../../../../core/result/api_result.dart';
@@ -11,12 +12,16 @@ class SettingsCubit extends StreamViewCubit<SettingsOverview> {
     required this._watchSettings,
     required this._updateSettings,
     required this._updateProfile,
+    required this._updatePhoto,
+    required this._removePhoto,
     required this._deleteAllData,
   });
 
   final WatchSettingsUseCase _watchSettings;
   final UpdateSettingsUseCase _updateSettings;
   final UpdateProfileUseCase _updateProfile;
+  final UpdateProfilePhotoUseCase _updatePhoto;
+  final RemoveProfilePhotoUseCase _removePhoto;
   final DeleteAllDataUseCase _deleteAllData;
 
   @override
@@ -35,8 +40,18 @@ class SettingsCubit extends StreamViewCubit<SettingsOverview> {
     );
   }
 
-  Future<ActionOutcome<void>> updateProfile(UserProfile profile) async =>
-      ActionOutcome.from(await _updateProfile(profile));
+  Future<ActionOutcome<void>> updateProfile(
+    UserProfile profile, {
+    int? age,
+  }) async => ActionOutcome.from(await _updateProfile(profile, age: age));
+
+  Future<ActionOutcome<void>> updatePhoto(
+    UserProfile profile,
+    MediaSource source,
+  ) async => ActionOutcome.from(await _updatePhoto(profile, source));
+
+  Future<ActionOutcome<void>> removePhoto(UserProfile profile) async =>
+      ActionOutcome.from(await _removePhoto(profile));
 
   Future<ActionOutcome<void>> deleteAllData() async =>
       ActionOutcome.from(await _deleteAllData());

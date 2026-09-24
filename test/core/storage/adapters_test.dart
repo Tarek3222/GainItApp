@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gainit/core/domain/entities/enums.dart';
 import 'package:gainit/core/domain/entities/program.dart';
+import 'package:gainit/core/domain/entities/user_profile.dart';
 import 'package:gainit/core/domain/entities/workout_session.dart';
 import 'package:gainit/core/storage/adapters/hive_adapters.dart';
 import 'package:hive_ce/hive_ce.dart';
@@ -41,6 +42,41 @@ class _LegacySetLogAdapter extends TypeAdapter<_LegacySetLog> {
 
 class _LegacySetLog {
   const _LegacySetLog();
+}
+
+/// Writes a profile the way version 0.1.0 did: no birth year or photo.
+class _LegacyProfileAdapter extends TypeAdapter<_LegacyProfile> {
+  @override
+  int get typeId => UserProfileAdapter().typeId;
+
+  @override
+  _LegacyProfile read(BinaryReader reader) => throw UnimplementedError();
+
+  @override
+  void write(BinaryWriter writer, _LegacyProfile obj) {
+    writer
+      ..writeByte(8)
+      ..writeByte(0)
+      ..write('me')
+      ..writeByte(1)
+      ..write('Old Timer')
+      ..writeByte(2)
+      ..write(180.0)
+      ..writeByte(3)
+      ..write(TrainingGoal.maintain)
+      ..writeByte(4)
+      ..write(DateTime(2026))
+      ..writeByte(5)
+      ..write(UnitSystem.metric)
+      ..writeByte(6)
+      ..write(DateTime(2026))
+      ..writeByte(7)
+      ..write(DateTime(2026));
+  }
+}
+
+class _LegacyProfile {
+  const _LegacyProfile();
 }
 
 void main() {
@@ -142,5 +178,43 @@ void main() {
     expect(set.isWarmup, isFalse);
     expect(set.rir, isNull);
     expect(set.notes, isNull);
+  });
+
+  test('profile with age, photo and imperial units round-trips', () async {
+    final profile = UserProfile(
+      id: 'me',
+      name: 'Sam',
+      heightCm: 180,
+      goal: TrainingGoal.cut,
+      trainingStartDate: DateTime(2026, 3),
+      createdAt: DateTime(2026, 3),
+      updatedAt: DateTime(2026, 3),
+      unitSystem: UnitSystem.imperial,
+      birthDate: DateTime(1996, 3, 1),
+      photoPath: '/data/media/me.jpg',
+    );
+
+    await harness.storage.profile.put('me', profile);
+
+    expect(harness.storage.profile.get('me'), profile);
+  });
+
+  test('a profile saved before age and photo existed still loads', () async {
+    final raw = await Hive.openBox<Object?>('legacy_profile_box');
+    Hive.registerAdapter<_LegacyProfile>(
+      _LegacyProfileAdapter(),
+      override: true,
+    );
+    await raw.put('me', const _LegacyProfile());
+    await raw.close();
+    Hive.registerAdapter<UserProfile>(UserProfileAdapter(), override: true);
+
+    final reopened = await Hive.openBox<Object?>('legacy_profile_box');
+    final profile = reopened.get('me')! as UserProfile;
+
+    expect(profile.name, 'Old Timer');
+    expect(profile.unitSystem, UnitSystem.metric);
+    expect(profile.birthDate, isNull);
+    expect(profile.photoPath, isNull);
   });
 }

@@ -42,4 +42,5 @@ enum TrainingGoal {
   final String label;
 }
 
-enum UnitSystem { metric }
+/// How weights and heights are shown. Storage is always kg / cm.
+enum UnitSystem { metric, imperial }

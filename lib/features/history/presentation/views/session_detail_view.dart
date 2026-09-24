@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/route_paths.dart';
 import '../../../../app/theme/app_tokens.dart';
+import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/state_views.dart';
@@ -88,7 +89,7 @@ class _ExerciseCard extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(
-                      '${Formatters.kg(set.actualWeight)} × ${set.actualReps}',
+                      '${context.units.weight(set.actualWeight)} × ${set.actualReps}',
                     ),
                   ),
                   if (set.rir != null)

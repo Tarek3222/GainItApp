@@ -29,6 +29,8 @@ class CompleteOnboardingUseCase {
       heightCm: input.heightCm,
       goal: input.goal,
       trainingStartDate: DateTime(start.year, start.month, start.day),
+      unitSystem: input.unitSystem,
+      birthDate: UserProfile.birthDateFor(input.age, now),
       createdAt: now,
       updatedAt: now,
     );
@@ -39,6 +41,7 @@ class CompleteOnboardingUseCase {
     );
     final errors = [
       ...Validators.profile(profile),
+      ...Validators.age(input.age),
       ...Validators.bodyWeight(weight),
     ];
     if (errors.isNotEmpty) return ApiFailure(ValidationFailure(errors));

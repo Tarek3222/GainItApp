@@ -6,6 +6,7 @@ import '../../../../app/router/route_paths.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../core/domain/training/performance_comparator.dart';
+import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/state_views.dart';
@@ -140,7 +141,7 @@ class ProgressLineTile extends StatelessWidget {
       ProgressOutcome.weightIncreased => (
         Icons.check_circle,
         semantic.success,
-        Formatters.signedKg(c.weightDelta),
+        context.units.signedWeight(c.weightDelta),
       ),
       ProgressOutcome.repsIncreased => (
         Icons.check_circle,
@@ -156,7 +157,7 @@ class ProgressLineTile extends StatelessWidget {
         Icons.arrow_downward,
         semantic.warning,
         c.weightDelta < 0
-            ? Formatters.signedKg(c.weightDelta)
+            ? context.units.signedWeight(c.weightDelta)
             : '${c.repsDelta} reps',
       ),
       ProgressOutcome.firstTime => (
@@ -180,7 +181,7 @@ class ProgressLineTile extends StatelessWidget {
                 children: [
                   Text(line.exerciseName),
                   Text(
-                    '${Formatters.kg(current.topWeight)} · '
+                    '${context.units.weight(current.topWeight)} · '
                     '${Formatters.repsList(current.sets.map((s) => s.reps))}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),

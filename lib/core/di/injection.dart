@@ -44,8 +44,12 @@ import '../../features/workout/domain/usecases/watch_active_workout_use_case.dar
 import '../../features/workout/presentation/cubits/active_workout_cubit.dart';
 import '../../features/workout/presentation/cubits/rest_timer_cubit.dart';
 import '../../features/workout/presentation/cubits/workout_summary_cubit.dart';
+import '../domain/repositories/unit_preference_repository.dart';
 import '../domain/services/day_change_source.dart';
+import '../domain/services/media_store.dart';
 import '../domain/services/notification_scheduler.dart';
+import '../domain/usecases/watch_unit_system_use_case.dart';
+import '../presentation/units/units_cubit.dart';
 import '../services/app_day_change_source.dart';
 import '../services/clock.dart';
 import '../services/id_generator.dart';
@@ -55,6 +59,7 @@ import '../storage/local_data_sources/profile_local_data_source.dart';
 import '../storage/local_data_sources/program_local_data_source.dart';
 import '../storage/local_data_sources/settings_local_data_source.dart';
 import '../storage/local_data_sources/workout_local_data_source.dart';
+import '../storage/repositories/unit_preference_repository_impl.dart';
 
 final getIt = GetIt.instance;
 
@@ -65,6 +70,7 @@ void configureDependencies({
   required NotificationScheduler notifications,
   Clock clock = const Clock(),
   DayChangeSource? dayChanges,
+  required MediaStore media,
 }) {
   // Infrastructure
   getIt
@@ -75,7 +81,8 @@ void configureDependencies({
     // Lazy: the default implementation needs an initialised WidgetsBinding.
     ..registerLazySingleton<DayChangeSource>(
       () => dayChanges ?? AppDayChangeSource(getIt()),
-    );
+    )
+    ..registerSingleton<MediaStore>(media);
 
   // Local data sources
   getIt
@@ -87,6 +94,9 @@ void configureDependencies({
 
   // Repositories
   getIt
+    ..registerLazySingleton<UnitPreferenceRepository>(
+      () => UnitPreferenceRepositoryImpl(getIt()),
+    )
     ..registerLazySingleton<StartupRepository>(
       () => StartupRepositoryImpl(getIt(), getIt()),
     )
@@ -112,7 +122,14 @@ void configureDependencies({
       () => BodyWeightRepositoryImpl(getIt()),
     )
     ..registerLazySingleton<SettingsRepository>(
-      () => SettingsRepositoryImpl(getIt(), getIt(), getIt(), getIt(), getIt()),
+      () => SettingsRepositoryImpl(
+        getIt(),
+        getIt(),
+        getIt(),
+        getIt(),
+        getIt(),
+        getIt(),
+      ),
     );
 
   // Use cases
@@ -125,9 +142,11 @@ void configureDependencies({
       () => WatchHomeDashboardUseCase(getIt(), getIt(), getIt()),
     )
     ..registerFactory(() => WatchWeeklyPlanUseCase(getIt(), getIt(), getIt()))
-    ..registerFactory(() => WatchWorkoutOverviewUseCase(getIt()))
+    ..registerFactory(
+      () => WatchWorkoutOverviewUseCase(getIt(), units: getIt()),
+    )
     ..registerFactory(() => StartWorkoutUseCase(getIt()))
-    ..registerFactory(() => WatchActiveWorkoutUseCase(getIt()))
+    ..registerFactory(() => WatchActiveWorkoutUseCase(getIt(), units: getIt()))
     ..registerFactory(() => LogSetUseCase(getIt(), getIt(), getIt()))
     ..registerFactory(() => UndoSetUseCase(getIt()))
     ..registerFactory(() => SkipExerciseUseCase(getIt()))
@@ -147,13 +166,21 @@ void configureDependencies({
     ..registerFactory(() => WatchBodyWeightUseCase(getIt()))
     ..registerFactory(() => AddBodyWeightUseCase(getIt(), getIt(), getIt()))
     ..registerFactory(() => DeleteBodyWeightUseCase(getIt()))
-    ..registerFactory(() => WatchSettingsUseCase(getIt()))
+    ..registerFactory(() => WatchSettingsUseCase(getIt(), getIt()))
     ..registerFactory(() => UpdateSettingsUseCase(getIt(), getIt()))
+    ..registerFactory(() => WatchUnitSystemUseCase(getIt()))
     ..registerFactory(() => UpdateProfileUseCase(getIt(), getIt()))
-    ..registerFactory(() => DeleteAllDataUseCase(getIt(), getIt()));
+    ..registerFactory(
+      () => UpdateProfilePhotoUseCase(getIt(), getIt(), getIt()),
+    )
+    ..registerFactory(
+      () => RemoveProfilePhotoUseCase(getIt(), getIt(), getIt()),
+    )
+    ..registerFactory(() => DeleteAllDataUseCase(getIt(), getIt(), getIt()));
 
-  // Cubits (created per route by BlocProvider)
+  // Cubits (created per route by BlocProvider; UnitsCubit at the app root)
   getIt
+    ..registerFactory(() => UnitsCubit(getIt()))
     ..registerFactory(
       () => SplashCubit(getStatus: getIt(), abandonWorkout: getIt()),
     )
@@ -217,6 +244,8 @@ void configureDependencies({
         watchSettings: getIt(),
         updateSettings: getIt(),
         updateProfile: getIt(),
+        updatePhoto: getIt(),
+        removePhoto: getIt(),
         deleteAllData: getIt(),
       ),
     );
