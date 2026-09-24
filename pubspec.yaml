@@ -35,6 +35,8 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   mocktail: ^1.0.5
+  plugin_platform_interface: ^2.1.8
+  video_player_platform_interface: ^6.9.0
 
 flutter:
   uses-material-design: true

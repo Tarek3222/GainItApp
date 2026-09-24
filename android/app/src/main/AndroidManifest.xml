@@ -11,6 +11,12 @@
         android:allowBackup="false"
         android:fullBackupContent="false"
         android:dataExtractionRules="@xml/data_extraction_rules">
+        <!-- Impeller renders with OpenGL ES instead of Vulkan. Video frames
+             drawn through the Vulkan backend crashed some GPUs ("Fence wait
+             failed: ErrorDeviceLost") and froze the app during playback. -->
+        <meta-data
+            android:name="io.flutter.embedding.android.ImpellerBackend"
+            android:value="opengles" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
