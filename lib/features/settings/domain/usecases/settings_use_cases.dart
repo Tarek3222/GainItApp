@@ -1,5 +1,6 @@
 import '../../../../core/domain/entities/app_settings.dart';
 import '../../../../core/domain/entities/user_profile.dart';
+import '../../../../core/domain/services/media_store.dart';
 import '../../../../core/domain/services/notification_scheduler.dart';
 import '../../../../core/domain/validation/validators.dart';
 import '../../../../core/result/api_result.dart';
@@ -9,11 +10,16 @@ import '../entities/settings_overview.dart';
 import '../repositories/settings_repository.dart';
 
 class WatchSettingsUseCase {
-  const WatchSettingsUseCase(this._repository);
+  const WatchSettingsUseCase(this._repository, this._clock);
 
   final SettingsRepository _repository;
+  final Clock _clock;
 
-  Stream<ApiResult<SettingsOverview>> call() => _repository.watchOverview();
+  Stream<ApiResult<SettingsOverview>> call() => _repository.watchOverview().map(
+    (result) => result.map(
+      (overview) => overview.withAge(overview.profile?.ageOn(_clock.now())),
+    ),
+  );
 }
 
 /// Saves preferences and keeps workout reminders in sync with them.
@@ -78,23 +84,87 @@ class UpdateProfileUseCase {
   final SettingsRepository _repository;
   final Clock _clock;
 
-  Future<VoidResult> call(UserProfile profile) async {
-    final updated = profile.copyWith(updatedAt: _clock.now());
-    final errors = Validators.profile(updated);
+  /// [age] replaces the stored birth date when given.
+  Future<VoidResult> call(UserProfile profile, {int? age}) async {
+    final now = _clock.now();
+    final updated = profile.copyWith(
+      birthDate: age == null ? null : UserProfile.birthDateFor(age, now),
+      updatedAt: now,
+    );
+    final errors = [
+      ...Validators.profile(updated),
+      if (age != null) ...Validators.age(age),
+    ];
     if (errors.isNotEmpty) return ApiFailure(ValidationFailure(errors));
     return _repository.saveProfile(updated);
   }
 }
 
+/// Lets the user pick a new profile photo, saves it, then removes the
+/// previous file. Cancelling the picker changes nothing.
+class UpdateProfilePhotoUseCase {
+  const UpdateProfilePhotoUseCase(this._repository, this._media, this._clock);
+
+  final SettingsRepository _repository;
+  final MediaStore _media;
+  final Clock _clock;
+
+  Future<VoidResult> call(UserProfile profile, MediaSource source) async {
+    final picked = await _media.pickImage(source);
+    switch (picked) {
+      case ApiFailure(:final failure):
+        return ApiFailure(failure);
+      case ApiSuccess(data: null):
+        return voidSuccess;
+      case ApiSuccess(:final data?):
+        final saved = await _repository.saveProfile(
+          profile.copyWith(photoPath: data, updatedAt: _clock.now()),
+        );
+        if (saved is ApiFailure<void>) {
+          // Don't leave an orphaned copy behind.
+          await _media.delete(data);
+          return saved;
+        }
+        final previous = profile.photoPath;
+        if (previous != null && previous != data) {
+          await _media.delete(previous);
+        }
+        return voidSuccess;
+    }
+  }
+}
+
+class RemoveProfilePhotoUseCase {
+  const RemoveProfilePhotoUseCase(this._repository, this._media, this._clock);
+
+  final SettingsRepository _repository;
+  final MediaStore _media;
+  final Clock _clock;
+
+  Future<VoidResult> call(UserProfile profile) async {
+    final previous = profile.photoPath;
+    if (previous == null) return voidSuccess;
+    final saved = await _repository.saveProfile(
+      profile.copyWith(clearPhoto: true, updatedAt: _clock.now()),
+    );
+    if (saved is ApiSuccess<void>) await _media.delete(previous);
+    return saved;
+  }
+}
+
 class DeleteAllDataUseCase {
-  const DeleteAllDataUseCase(this._repository, this._scheduler);
+  const DeleteAllDataUseCase(this._repository, this._scheduler, this._media);
 
   final SettingsRepository _repository;
   final NotificationScheduler _scheduler;
+  final MediaStore _media;
 
   Future<VoidResult> call() async {
     final result = await _repository.deleteAllData();
     if (result is ApiSuccess<void>) {
+      // Photos are personal data too. Best effort: the data is already gone,
+      // so a leftover file must not block the rest of the reset.
+      await _media.clearAll();
       try {
         await _scheduler.cancelWorkoutReminders();
         await _scheduler.cancelRestOver();

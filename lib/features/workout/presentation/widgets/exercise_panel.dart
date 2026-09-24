@@ -5,6 +5,7 @@ import '../../../../app/theme/app_tokens.dart';
 import '../../../../core/domain/entities/workout_session.dart';
 import '../../../../core/domain/training/progression_engine.dart';
 import '../../../../core/domain/validation/validators.dart';
+import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/number_stepper.dart';
@@ -128,7 +129,7 @@ class _TargetCard extends StatelessWidget {
     final last = exercise.lastPerformance;
     final weightText = rec.suggestedWeight == null
         ? 'Choose a weight'
-        : Formatters.kg(rec.suggestedWeight!);
+        : context.units.weight(rec.suggestedWeight!);
     final (icon, color) = switch (rec.type) {
       RecommendationType.increaseWeight => (
         Icons.trending_up,
@@ -171,7 +172,7 @@ class _TargetCard extends StatelessWidget {
           Text(
             last == null
                 ? 'Last: no previous session'
-                : 'Last: ${Formatters.kg(last.topWeight)} · '
+                : 'Last: ${context.units.weight(last.topWeight)} · '
                       '${Formatters.repsList(last.sets.map((e) => e.reps))}',
             style: theme.textTheme.bodyMedium?.copyWith(color: muted),
           ),
@@ -208,7 +209,7 @@ class _LoggedSetRow extends StatelessWidget {
             Text('Set ${set.setNumber}', style: theme.textTheme.titleSmall),
             const Spacer(),
             Text(
-              '${Formatters.kg(set.actualWeight)} × ${set.actualReps}'
+              '${context.units.weight(set.actualWeight)} × ${set.actualReps}'
               '${set.rir == null ? '' : '  RIR ${set.rir}'}',
               style: theme.textTheme.bodyLarge,
             ),
@@ -301,6 +302,7 @@ class _SetEditorState extends State<SetEditor> {
     final theme = Theme.of(context);
     final s = widget.exercise.snapshot;
     final setNumber = widget.exercise.nextSetNumber;
+    final units = context.units;
     return AppCard(
       borderColor: theme.colorScheme.primary.withValues(alpha: 0.6),
       child: Column(
@@ -311,15 +313,17 @@ class _SetEditorState extends State<SetEditor> {
             style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: AppSpacing.md),
+          // Edited in the display unit (1 lb steps in imperial), stored in kg.
           NumberStepper(
-            label: 'kg',
-            value: _weight,
-            step: s.weightStep,
-            min: Validators.minSetWeightKg,
-            max: 1000,
+            label: units.weightUnit,
+            value: units.toDisplayWeight(_weight),
+            step: units.isMetric ? s.weightStep : 1,
+            min: units.isMetric ? Validators.minSetWeightKg : 1,
+            max: units.toDisplayWeight(Validators.maxWeightKg),
             decimals: true,
-            format: Formatters.weight,
-            onChanged: (v) => setState(() => _weight = v),
+            format: units.formatDisplay,
+            onChanged: (v) =>
+                setState(() => _weight = units.fromDisplayWeight(v)),
           ),
           const SizedBox(height: AppSpacing.sm),
           NumberStepper(

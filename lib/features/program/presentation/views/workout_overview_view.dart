@@ -6,6 +6,7 @@ import '../../../../app/router/route_paths.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../core/presentation/action_outcome.dart';
+import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/presentation/view_state.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
@@ -130,14 +131,14 @@ class _ExerciseTile extends StatelessWidget {
           Text(
             rec.suggestedWeight == null
                 ? 'Target: first session — find your working weight'
-                : 'Target: ${Formatters.kg(rec.suggestedWeight!)}',
+                : 'Target: ${context.units.weight(rec.suggestedWeight!)}',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.primary,
             ),
           ),
           if (last != null)
             Text(
-              'Last: ${Formatters.kg(last.topWeight)} · '
+              'Last: ${context.units.weight(last.topWeight)} · '
               '${Formatters.repsList(last.sets.map((s) => s.reps))}',
               style: theme.textTheme.bodySmall?.copyWith(color: muted),
             ),

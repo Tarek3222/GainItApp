@@ -61,6 +61,14 @@ abstract final class Validators {
       'Height must be between 100 and 250 cm.',
   ];
 
+  static const minAge = 13;
+  static const maxAge = 90;
+
+  static List<String> age(int age) => [
+    if (age < minAge || age > maxAge)
+      'Age must be between $minAge and $maxAge.',
+  ];
+
   static List<String> program(Program p) => [
     if (p.name.trim().isEmpty) 'A program needs a name.',
   ];

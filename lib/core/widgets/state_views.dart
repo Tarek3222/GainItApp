@@ -97,29 +97,44 @@ class EmptyState extends StatelessWidget {
 }
 
 /// Centers scrollable content and caps its width on tablets.
+///
+/// Children are built lazily by default. Forms pass [eager] so fields that
+/// scroll off-screen stay mounted and still take part in validation.
 class PageBody extends StatelessWidget {
-  const PageBody({super.key, required this.children, this.padding});
+  const PageBody({
+    super.key,
+    required this.children,
+    this.padding,
+    this.eager = false,
+  });
 
   final List<Widget> children;
   final EdgeInsetsGeometry? padding;
+  final bool eager;
 
   @override
   Widget build(BuildContext context) {
+    final effectivePadding =
+        padding ??
+        const EdgeInsets.fromLTRB(
+          AppSpacing.page,
+          AppSpacing.sm,
+          AppSpacing.page,
+          AppSpacing.xl,
+        );
     return Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: AppSpacing.maxContentWidth),
-        child: ListView(
-          padding:
-              padding ??
-              const EdgeInsets.fromLTRB(
-                AppSpacing.page,
-                AppSpacing.sm,
-                AppSpacing.page,
-                AppSpacing.xl,
-              ),
-          children: children,
-        ),
+        child: eager
+            ? SingleChildScrollView(
+                padding: effectivePadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: children,
+                ),
+              )
+            : ListView(padding: effectivePadding, children: children),
       ),
     );
   }

@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../entities/enums.dart';
+import '../units/unit_converter.dart';
 import 'performance.dart';
 
 /// Exercise configuration the engine needs — read from stored program data,
@@ -10,15 +12,28 @@ class ProgressionConfig extends Equatable {
     required this.repMin,
     required this.repMax,
     required this.weightStep,
+    this.unitSystem = UnitSystem.metric,
   });
 
   final int workingSets;
   final int repMin;
   final int repMax;
+
+  /// Load increment in kg.
   final double weightStep;
 
+  /// The unit the user loads the bar in. Imperial progression runs on a
+  /// whole-pound grid so suggestions are loads the user can actually pick.
+  final UnitSystem unitSystem;
+
   @override
-  List<Object?> get props => [workingSets, repMin, repMax, weightStep];
+  List<Object?> get props => [
+    workingSets,
+    repMin,
+    repMax,
+    weightStep,
+    unitSystem,
+  ];
 }
 
 enum RecommendationType {
@@ -88,6 +103,59 @@ class ProgressionEngine {
     required ProgressionConfig config,
     required List<ExerciseSessionPerformance> history,
   }) {
+    if (config.unitSystem == UnitSystem.imperial) {
+      return _recommendInPounds(config, history);
+    }
+    return _recommend(config, history);
+  }
+
+  /// Runs the same rules on pound values with a whole-pound step (1 kg ≈
+  /// 2 lb), then converts the suggested loads back to kg for storage.
+  Recommendation _recommendInPounds(
+    ProgressionConfig config,
+    List<ExerciseSessionPerformance> history,
+  ) {
+    double toLb(double kg) => _clean(UnitConverter.kgToLb(kg));
+    final stepLb = UnitConverter.kgToLb(config.weightStep).roundToDouble();
+    final inPounds = _recommend(
+      ProgressionConfig(
+        workingSets: config.workingSets,
+        repMin: config.repMin,
+        repMax: config.repMax,
+        weightStep: stepLb < 1 ? 1 : stepLb,
+      ),
+      [
+        for (final session in history)
+          ExerciseSessionPerformance(
+            sessionId: session.sessionId,
+            date: session.date,
+            sets: [
+              for (final set in session.sets)
+                SetPerformance(
+                  weight: toLb(set.weight),
+                  reps: set.reps,
+                  rir: set.rir,
+                ),
+            ],
+          ),
+      ],
+    );
+    double? toKg(double? lb) => lb == null ? null : UnitConverter.lbToKg(lb);
+    return Recommendation(
+      type: inPounds.type,
+      suggestedWeight: toKg(inPounds.suggestedWeight),
+      previousWeight: toKg(inPounds.previousWeight),
+      repMin: inPounds.repMin,
+      repMax: inPounds.repMax,
+      targetReps: inPounds.targetReps,
+      reason: inPounds.reason,
+    );
+  }
+
+  Recommendation _recommend(
+    ProgressionConfig config,
+    List<ExerciseSessionPerformance> history,
+  ) {
     // Sessions logged at 0 kg (allowed before sets required a weight) give
     // nothing to build a load on, so they count as no history.
     final sessions = history
@@ -134,7 +202,7 @@ class ProgressionEngine {
       );
     }
 
-    final atWeight = last.sets.where((s) => s.weight == weight);
+    final atWeight = last.sets.where((s) => sameWeight(s.weight, weight));
     final lowest = atWeight.isEmpty
         ? config.repMin
         : atWeight.map((s) => s.reps).reduce((a, b) => a < b ? a : b);
@@ -146,7 +214,7 @@ class ProgressionEngine {
       repMin: config.repMin,
       repMax: config.repMax,
       targetReps: target,
-      reason: 'Keep ${_fmt(weight)} kg and aim for $target+ reps per set.',
+      reason: 'Keep the same weight and aim for $target+ reps per set.',
     );
   }
 
@@ -157,10 +225,10 @@ class ProgressionEngine {
     for (var i = 0; i < history.length - 1; i++) {
       final current = history[i];
       final previous = history[i + 1];
-      final sameWeight = current.topWeight == previous.topWeight;
+      final sameLoad = sameWeight(current.topWeight, previous.topWeight);
       final noMoreReps =
           current.totalRepsAtTopWeight <= previous.totalRepsAtTopWeight;
-      if (sameWeight && noMoreReps) {
+      if (sameLoad && noMoreReps) {
         count++;
       } else {
         break;
@@ -174,7 +242,9 @@ class ProgressionEngine {
     ProgressionConfig config,
   ) {
     final weight = last.topWeight;
-    final atWeight = last.sets.where((s) => s.weight == weight).toList();
+    final atWeight = last.sets
+        .where((s) => sameWeight(s.weight, weight))
+        .toList();
     return atWeight.length >= config.workingSets &&
         atWeight.every((s) => s.reps >= config.repMax);
   }
@@ -208,6 +278,9 @@ class ProgressionEngine {
 
   static double _clean(double v) => double.parse(v.toStringAsFixed(2));
 
-  static String _fmt(double v) =>
-      v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toString();
+  /// Loads within 0.01 are the same bar; unit conversion leaves tiny
+  /// floating-point differences that must not count as a weight change.
+  static bool sameWeight(double a, double b) => (a - b).abs() < weightTolerance;
+
+  static const weightTolerance = 0.01;
 }

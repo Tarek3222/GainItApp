@@ -39,13 +39,14 @@ abstract final class PerformanceComparator {
       return const PerformanceComparison(outcome: ProgressOutcome.firstTime);
     }
     final weightDelta = current.topWeight - previous.topWeight;
-    if (weightDelta > 0) {
+    // Within 0.01 counts as the same load (unit-conversion rounding).
+    if (weightDelta >= 0.01) {
       return PerformanceComparison(
         outcome: ProgressOutcome.weightIncreased,
         weightDelta: weightDelta,
       );
     }
-    if (weightDelta < 0) {
+    if (weightDelta <= -0.01) {
       return PerformanceComparison(
         outcome: ProgressOutcome.regressed,
         weightDelta: weightDelta,

@@ -5,7 +5,7 @@ nextTypeId: 17
 types:
   UserProfile:
     typeId: 1
-    nextIndex: 8
+    nextIndex: 10
     fields:
       id:
         index: 0
@@ -23,6 +23,10 @@ types:
         index: 6
       updatedAt:
         index: 7
+      birthDate:
+        index: 8
+      photoPath:
+        index: 9
   Program:
     typeId: 2
     nextIndex: 7
@@ -285,7 +289,9 @@ types:
         index: 2
   UnitSystem:
     typeId: 16
-    nextIndex: 1
+    nextIndex: 2
     fields:
       metric:
         index: 0
+      imperial:
+        index: 1

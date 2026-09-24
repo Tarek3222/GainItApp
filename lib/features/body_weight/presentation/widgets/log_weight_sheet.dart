@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_tokens.dart';
-import '../../../../core/utils/formatters.dart';
-import '../../../../core/widgets/number_stepper.dart';
+import '../../../../core/presentation/units/unit_format.dart';
+import '../../../../core/widgets/measure_wheel_picker.dart';
 
 /// Bottom sheet to log a weigh-in. Returns the entered kg, or `null`.
 Future<double?> showLogWeightSheet(BuildContext context, {double? initialKg}) {
@@ -44,22 +44,14 @@ class _LogWeightSheetState extends State<_LogWeightSheet> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: AppSpacing.md),
-            NumberStepper(
-              label: 'kg',
-              value: _kg,
-              step: 0.1,
-              min: 20,
-              max: 400,
-              decimals: true,
-              format: (v) =>
-                  Formatters.weight(double.parse(v.toStringAsFixed(1))),
-              onChanged: (v) => setState(() => _kg = v),
+            BodyWeightPicker(
+              weightKg: _kg,
+              system: context.units.system,
+              onChanged: (kg) => setState(() => _kg = kg),
             ),
             const SizedBox(height: AppSpacing.lg),
             FilledButton(
-              onPressed: () => Navigator.of(
-                context,
-              ).pop(double.parse(_kg.toStringAsFixed(1))),
+              onPressed: () => Navigator.of(context).pop(_kg),
               child: const Text('Save'),
             ),
           ],

@@ -27,13 +27,15 @@ class UserProfileAdapter extends TypeAdapter<UserProfile> {
       unitSystem: fields[5] == null
           ? UnitSystem.metric
           : fields[5] as UnitSystem,
+      birthDate: fields[8] as DateTime?,
+      photoPath: fields[9] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, UserProfile obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -49,7 +51,11 @@ class UserProfileAdapter extends TypeAdapter<UserProfile> {
       ..writeByte(6)
       ..write(obj.createdAt)
       ..writeByte(7)
-      ..write(obj.updatedAt);
+      ..write(obj.updatedAt)
+      ..writeByte(8)
+      ..write(obj.birthDate)
+      ..writeByte(9)
+      ..write(obj.photoPath);
   }
 
   @override
@@ -830,6 +836,8 @@ class UnitSystemAdapter extends TypeAdapter<UnitSystem> {
     switch (reader.readByte()) {
       case 0:
         return UnitSystem.metric;
+      case 1:
+        return UnitSystem.imperial;
       default:
         return UnitSystem.metric;
     }
@@ -840,6 +848,8 @@ class UnitSystemAdapter extends TypeAdapter<UnitSystem> {
     switch (obj) {
       case UnitSystem.metric:
         writer.writeByte(0);
+      case UnitSystem.imperial:
+        writer.writeByte(1);
     }
   }
 
