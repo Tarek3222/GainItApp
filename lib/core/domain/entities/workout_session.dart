@@ -100,7 +100,7 @@ class SessionExercise extends Equatable {
   final int? supersetGroup;
   final bool isSkipped;
 
-  SessionExercise copyWith({bool? isSkipped}) {
+  SessionExercise copyWith({bool? isSkipped, double? weightStep}) {
     return SessionExercise(
       id: id,
       sessionId: sessionId,
@@ -116,7 +116,7 @@ class SessionExercise extends Equatable {
       restSeconds: restSeconds,
       rirMin: rirMin,
       rirMax: rirMax,
-      weightStep: weightStep,
+      weightStep: weightStep ?? this.weightStep,
       supersetGroup: supersetGroup,
       isSkipped: isSkipped ?? this.isSkipped,
     );

@@ -41,7 +41,7 @@ abstract final class ProgramSeed {
       required int repMax,
       required int restMin,
       int? restMax,
-      double step = 2.5,
+      double step = 1,
       int? superset,
       String? notes,
     }) {
@@ -168,7 +168,6 @@ abstract final class ProgramSeed {
       repMax: 15,
       restMin: 60,
       restMax: 90,
-      step: 2,
     );
 
     // Monday — Legs (20 sets).
@@ -256,7 +255,6 @@ abstract final class ProgramSeed {
       repMin: 8,
       repMax: 12,
       restMin: 120,
-      step: 2,
     );
     add(
       dayId: wednesdayId,
@@ -315,7 +313,6 @@ abstract final class ProgramSeed {
       repMin: 15,
       repMax: 20,
       restMin: 60,
-      step: 2,
     );
     add(
       dayId: wednesdayId,
@@ -327,7 +324,6 @@ abstract final class ProgramSeed {
       repMin: 15,
       repMax: 20,
       restMin: 60,
-      step: 2,
     );
 
     // Thursday — Shoulders + Arms (22 sets). Biceps/triceps supersets.
@@ -341,7 +337,6 @@ abstract final class ProgramSeed {
       repMin: 12,
       repMax: 20,
       restMin: 60,
-      step: 2,
     );
     add(
       dayId: thursdayId,
@@ -388,7 +383,6 @@ abstract final class ProgramSeed {
       repMin: 8,
       repMax: 12,
       restMin: 90,
-      step: 2,
       superset: 1,
     );
     add(
@@ -415,7 +409,6 @@ abstract final class ProgramSeed {
       repMin: 10,
       repMax: 12,
       restMin: 90,
-      step: 2,
       superset: 2,
     );
 

@@ -88,7 +88,11 @@ class ProgressionEngine {
     required ProgressionConfig config,
     required List<ExerciseSessionPerformance> history,
   }) {
-    final sessions = history.where((h) => !h.isEmpty).toList();
+    // Sessions logged at 0 kg (allowed before sets required a weight) give
+    // nothing to build a load on, so they count as no history.
+    final sessions = history
+        .where((h) => !h.isEmpty && h.topWeight > 0)
+        .toList();
     if (sessions.isEmpty) {
       return Recommendation(
         type: RecommendationType.firstSession,
@@ -107,10 +111,7 @@ class ProgressionEngine {
     if (_reachedTopOfRange(last, config)) {
       return Recommendation(
         type: RecommendationType.increaseWeight,
-        suggestedWeight: roundToStep(
-          weight + config.weightStep,
-          config.weightStep,
-        ),
+        suggestedWeight: _increasedWeight(weight, config.weightStep),
         previousWeight: weight,
         repMin: config.repMin,
         repMax: config.repMax,
@@ -178,10 +179,20 @@ class ProgressionEngine {
         atWeight.every((s) => s.reps >= config.repMax);
   }
 
+  /// One step up, landing on the step grid: 30 → 31, and an off-grid
+  /// 32.5 → 33 (never more than one step).
+  double _increasedWeight(double weight, double step) {
+    final next = roundDownToStep(weight + step, step);
+    return next > weight ? next : _clean(weight + step);
+  }
+
   double _deloadWeight(double weight, double step) {
     var reduced = roundDownToStep(weight * deloadFactor, step);
     if (reduced >= weight) reduced = weight - step;
-    return reduced < 0 ? 0 : _clean(reduced);
+    // A set needs a weight above 0: never suggest less than one step, and
+    // keep the current weight when it is already at or below one step.
+    if (reduced < step) reduced = weight > step ? step : weight;
+    return _clean(reduced);
   }
 
   static double roundToStep(double value, double step) {

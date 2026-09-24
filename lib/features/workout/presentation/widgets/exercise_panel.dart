@@ -4,6 +4,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../core/domain/entities/workout_session.dart';
 import '../../../../core/domain/training/progression_engine.dart';
+import '../../../../core/domain/validation/validators.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/number_stepper.dart';
@@ -21,9 +22,13 @@ class ExercisePanel extends StatelessWidget {
     required this.onLogSet,
     required this.onUndoSet,
     required this.onToggleSkip,
+    this.isResting = false,
   });
 
   final ActiveExercise exercise;
+
+  /// While the rest timer runs the next set cannot be completed.
+  final bool isResting;
   final LogSetCallback onLogSet;
   final ValueChanged<SetLog> onUndoSet;
   final VoidCallback onToggleSkip;
@@ -66,6 +71,7 @@ class ExercisePanel extends StatelessWidget {
           SetEditor(
             key: ValueKey('${snapshot.id}-${exercise.nextSetNumber}'),
             exercise: exercise,
+            isResting: isResting,
             onLogSet: onLogSet,
           ),
         const SizedBox(height: AppSpacing.sm),
@@ -252,10 +258,16 @@ class _InfoBanner extends StatelessWidget {
 /// Editor for the next set. Draft values are local UI state; nothing is
 /// persisted until the user completes the set.
 class SetEditor extends StatefulWidget {
-  const SetEditor({super.key, required this.exercise, required this.onLogSet});
+  const SetEditor({
+    super.key,
+    required this.exercise,
+    required this.onLogSet,
+    this.isResting = false,
+  });
 
   final ActiveExercise exercise;
   final LogSetCallback onLogSet;
+  final bool isResting;
 
   @override
   State<SetEditor> createState() => _SetEditorState();
@@ -275,8 +287,10 @@ class _SetEditorState extends State<SetEditor> {
     _rir = widget.exercise.sets.isEmpty ? null : widget.exercise.sets.last.rir;
   }
 
+  bool get _canComplete => !_saving && !widget.isResting && _weight > 0;
+
   Future<void> _submit() async {
-    if (_saving) return;
+    if (!_canComplete) return;
     setState(() => _saving = true);
     await widget.onLogSet(_weight, _reps, _rir);
     if (mounted) setState(() => _saving = false);
@@ -301,6 +315,7 @@ class _SetEditorState extends State<SetEditor> {
             label: 'kg',
             value: _weight,
             step: s.weightStep,
+            min: Validators.minSetWeightKg,
             max: 1000,
             decimals: true,
             format: Formatters.weight,
@@ -331,10 +346,22 @@ class _SetEditorState extends State<SetEditor> {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
+          if (_weight <= 0 && !widget.isResting) ...[
+            Text(
+              'Enter a weight above 0',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+          ],
           FilledButton.icon(
-            onPressed: _saving ? null : _submit,
-            icon: const Icon(Icons.check),
-            label: Text('Complete set $setNumber'),
+            onPressed: _canComplete ? _submit : null,
+            icon: Icon(widget.isResting ? Icons.timer_outlined : Icons.check),
+            label: Text(
+              widget.isResting ? 'Resting…' : 'Complete set $setNumber',
+            ),
           ),
         ],
       ),

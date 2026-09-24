@@ -144,6 +144,59 @@ void main() {
       expect(result.suggestedWeight, greaterThanOrEqualTo(0));
     });
 
+    test('an off-grid weight increases by at most one step', () {
+      const oneKg = ProgressionConfig(
+        workingSets: 3,
+        repMin: 6,
+        repMax: 10,
+        weightStep: 1,
+      );
+      final result = engine.recommend(
+        config: oneKg,
+        history: [
+          session([(32.5, 10), (32.5, 10), (32.5, 10)]),
+        ],
+      );
+
+      expect(result.type, RecommendationType.increaseWeight);
+      expect(result.suggestedWeight, 33);
+    });
+
+    test('sessions logged at 0 kg count as no history', () {
+      final result = engine.recommend(
+        config: bench,
+        history: [
+          session([(0, 8), (0, 8), (0, 8)]),
+        ],
+      );
+
+      expect(result.type, RecommendationType.firstSession);
+      expect(result.suggestedWeight, isNull);
+    });
+
+    test('deload never suggests a weight below one step', () {
+      const oneKg = ProgressionConfig(
+        workingSets: 3,
+        repMin: 6,
+        repMax: 10,
+        weightStep: 1,
+      );
+      List<ExerciseSessionPerformance> stalledAt(double w) => [
+        session([(w, 6), (w, 6), (w, 6)], daysAgo: 0),
+        session([(w, 6), (w, 6), (w, 6)], daysAgo: 7),
+        session([(w, 6), (w, 6), (w, 6)], daysAgo: 14),
+      ];
+
+      expect(
+        engine.recommend(config: oneKg, history: stalledAt(1)).suggestedWeight,
+        1,
+      );
+      expect(
+        engine.recommend(config: oneKg, history: stalledAt(2)).suggestedWeight,
+        1,
+      );
+    });
+
     test('follows the spec example sessions 1 → 4', () {
       final history = [
         session([(30, 10), (30, 10), (30, 10)], daysAgo: 0),

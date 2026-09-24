@@ -94,7 +94,9 @@ void main() {
     expect(find.text('Last: no previous session'), findsOneWidget);
 
     // Log the first set → autosaved, next set shown, rest timer starts.
+    await tester.ensureVisible(find.byTooltip('Increase kg').first);
     await tester.tap(find.byTooltip('Increase kg').first);
+    await tester.pump();
     await tester.ensureVisible(find.text('Complete set 1'));
     await tester.tap(find.text('Complete set 1'));
     await tester.pumpAndSettle();
@@ -103,6 +105,16 @@ void main() {
     expect(find.text('1 of 20 sets'), findsOneWidget);
     expect(find.text('REST'), findsOneWidget);
     expect(storage.setLogs.length, 1);
+
+    // While resting the next set cannot be completed; skipping unlocks it.
+    final resting = find.widgetWithText(FilledButton, 'Resting…');
+    await tester.ensureVisible(resting);
+    expect(tester.widget<FilledButton>(resting).onPressed, isNull);
+    await tester.tap(find.widgetWithText(TextButton, 'Skip'));
+    await tester.pumpAndSettle();
+    final next = find.widgetWithText(FilledButton, 'Complete set 2');
+    await tester.ensureVisible(next);
+    expect(tester.widget<FilledButton>(next).onPressed, isNotNull);
 
     // Finish early from the menu.
     await tester.tap(find.byType(PopupMenuButton<String>));
@@ -152,6 +164,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Start workout'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byTooltip('Increase kg').first);
+    await tester.tap(find.byTooltip('Increase kg').first);
+    await tester.pump();
     await tester.ensureVisible(find.text('Complete set 1'));
     await tester.tap(find.text('Complete set 1'));
     await tester.pumpAndSettle();

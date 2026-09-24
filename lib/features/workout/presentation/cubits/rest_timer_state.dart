@@ -21,6 +21,10 @@ final class RestTimerState extends Equatable {
 
   bool get isVisible => status != RestTimerStatus.idle;
 
+  /// A rest period is under way (running or paused); the next set waits.
+  bool get isResting =>
+      status == RestTimerStatus.running || status == RestTimerStatus.paused;
+
   double get fraction {
     if (total.inMilliseconds <= 0) return 0;
     return (remaining.inMilliseconds / total.inMilliseconds).clamp(0, 1);

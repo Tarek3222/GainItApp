@@ -125,6 +125,29 @@ void main() {
       );
       verifyNever(() => repository.saveSet(any()));
     });
+
+    test('rejects a set with weight 0 without touching storage', () async {
+      final result = await LogSetUseCase(repository, clock, _FakeIds())(
+        const LogSetInput(
+          sessionExerciseId: 'se1',
+          setNumber: 1,
+          weight: 0,
+          reps: 8,
+          plannedRepsMin: 6,
+          plannedRepsMax: 10,
+        ),
+      );
+
+      expect(
+        result,
+        isA<ApiFailure<void>>().having(
+          (f) => (f.failure as ValidationFailure).errors,
+          'errors',
+          contains('Weight must be above 0.'),
+        ),
+      );
+      verifyNever(() => repository.saveSet(any()));
+    });
   });
 
   group('WatchActiveWorkoutUseCase.build', () {

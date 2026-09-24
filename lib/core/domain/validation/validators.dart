@@ -9,6 +9,10 @@ import '../entities/workout_session.dart';
 /// human-readable errors; empty means valid.
 abstract final class Validators {
   static const maxWeightKg = 1000.0;
+
+  /// Lightest weight the set editor offers. Any weight above 0 is valid;
+  /// this only sets the −/+ floor so small plates stay reachable.
+  static const minSetWeightKg = 0.5;
   static const maxReps = 200;
   static const maxRir = 10;
 
@@ -16,7 +20,7 @@ abstract final class Validators {
     if (set.setNumber < 1) 'Set number must be at least 1.',
     if (set.actualReps < 1) 'A working set needs at least 1 rep.',
     if (set.actualReps > maxReps) 'Reps must be $maxReps or fewer.',
-    if (set.actualWeight < 0) 'Weight cannot be negative.',
+    if (set.actualWeight <= 0) 'Weight must be above 0.',
     if (set.actualWeight > maxWeightKg) 'Weight must be under $maxWeightKg kg.',
     if (set.actualWeight.isNaN) 'Weight must be a number.',
     if (set.rir != null && set.rir! < 0) 'RIR cannot be negative.',

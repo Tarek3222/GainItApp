@@ -150,7 +150,7 @@ void main() {
       final thirdId =
           ((await app.start(ProgramSeed.sundayId)) as ApiSuccess<String>).data;
       final third = await app.current(thirdId);
-      expect(third.exercises.first.recommendation.suggestedWeight, 32.5);
+      expect(third.exercises.first.recommendation.suggestedWeight, 31.0);
     },
   );
 }

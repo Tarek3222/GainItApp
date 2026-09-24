@@ -31,6 +31,11 @@ class NumberStepper extends StatelessWidget {
 
   double _clamp(double v) => double.parse(v.clamp(min, max).toStringAsFixed(2));
 
+  /// −/+ land on the step grid, so an off-grid value (e.g. 32.5 with a 1 kg
+  /// step) moves to 32 / 33 rather than 31.5 / 33.5. Typed values stay exact.
+  double get _next => ((value / step) + 1e-9).floor() * step + step;
+  double get _previous => ((value / step) - 1e-9).ceil() * step - step;
+
   String get _text =>
       format?.call(value) ??
       (decimals ? value.toString() : value.toStringAsFixed(0));
@@ -58,9 +63,7 @@ class NumberStepper extends StatelessWidget {
           _StepButton(
             icon: Icons.remove,
             semanticLabel: 'Decrease $label',
-            onPressed: value > min
-                ? () => onChanged(_clamp(value - step))
-                : null,
+            onPressed: value > min ? () => onChanged(_clamp(_previous)) : null,
           ),
           Expanded(
             child: Semantics(
@@ -98,9 +101,7 @@ class NumberStepper extends StatelessWidget {
           _StepButton(
             icon: Icons.add,
             semanticLabel: 'Increase $label',
-            onPressed: value < max
-                ? () => onChanged(_clamp(value + step))
-                : null,
+            onPressed: value < max ? () => onChanged(_clamp(_next)) : null,
           ),
         ],
       ),

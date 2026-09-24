@@ -161,6 +161,67 @@ void main() {
       expect(logged, (32.5, 7, 2));
     });
 
+    testWidgets('cannot complete a set while the rest timer runs', (
+      tester,
+    ) async {
+      var logged = false;
+      await tester.pumpWidget(
+        _app(
+          ExercisePanel(
+            exercise: exercise(),
+            isResting: true,
+            onLogSet: (_, _, _) async => logged = true,
+            onUndoSet: (_) {},
+            onToggleSkip: () {},
+          ),
+        ),
+      );
+
+      final button = find.widgetWithText(FilledButton, 'Resting…');
+      await tester.ensureVisible(button);
+      expect(tester.widget<FilledButton>(button).onPressed, isNull);
+      await tester.tap(button);
+      await tester.pump();
+
+      expect(logged, isFalse);
+    });
+
+    testWidgets('cannot complete a set without a weight above 0', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _app(
+          ExercisePanel(
+            exercise: ActiveExercise(
+              snapshot: Fixtures.sessionExercise(),
+              sets: const [],
+              lastPerformance: null,
+              recommendation: const Recommendation(
+                type: RecommendationType.firstSession,
+                repMin: 6,
+                repMax: 10,
+                targetReps: 6,
+                reason: 'Pick a weight you can lift for 6–10 reps.',
+              ),
+            ),
+            onLogSet: (_, _, _) async {},
+            onUndoSet: (_) {},
+            onToggleSkip: () {},
+          ),
+        ),
+      );
+
+      final button = find.widgetWithText(FilledButton, 'Complete set 1');
+      await tester.ensureVisible(button);
+      expect(find.text('Enter a weight above 0'), findsOneWidget);
+      expect(tester.widget<FilledButton>(button).onPressed, isNull);
+
+      await tester.tap(find.byTooltip('Increase kg'));
+      await tester.pump();
+
+      expect(tester.widget<FilledButton>(button).onPressed, isNotNull);
+    });
+
     testWidgets('shows logged sets and the next set number', (tester) async {
       await tester.pumpWidget(
         _app(
