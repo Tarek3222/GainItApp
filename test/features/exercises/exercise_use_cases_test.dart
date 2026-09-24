@@ -35,7 +35,7 @@ void main() {
     primaryMuscle: MuscleGroup.biceps,
     category: ExerciseCategory.isolation,
     createdAt: DateTime(2026),
-    imagePath: 'old.jpg',
+    imagePaths: const ['old.jpg'],
   );
 
   Exercise saved() =>
@@ -93,7 +93,7 @@ void main() {
       expect((result as ApiSuccess<String>).data, 'ex_curl');
       final exercise = saved();
       expect(exercise.name, 'Bayesian Curl');
-      expect(exercise.imagePath, 'old.jpg');
+      expect(exercise.imagePaths, ['old.jpg']);
       expect(exercise.instructions, 'Face away from the cable.');
     });
 
@@ -112,7 +112,7 @@ void main() {
   });
 
   group('AttachExerciseMediaUseCase', () {
-    test('a new photo replaces the old file', () async {
+    test('a new photo is added after the existing ones', () async {
       final media = FakeMediaStore(pickResult: const ApiSuccess('new.jpg'));
 
       final result = await AttachExerciseMediaUseCase(repository, media)(
@@ -122,8 +122,43 @@ void main() {
       );
 
       expect(result.isSuccess, isTrue);
-      expect(saved().imagePath, 'new.jpg');
-      expect(media.deleted, ['old.jpg']);
+      expect(saved().imagePaths, ['old.jpg', 'new.jpg']);
+      expect(media.deleted, isEmpty);
+    });
+
+    test('no more than 10 photos; the picker is not even opened', () async {
+      when(() => repository.getExercise('ex_curl')).thenAnswer(
+        (_) async => ApiSuccess(
+          curl.copyWith(imagePaths: [for (var i = 0; i < 10; i++) '$i.jpg']),
+        ),
+      );
+      final media = FakeMediaStore(pickResult: const ApiSuccess('new.jpg'));
+
+      final result = await AttachExerciseMediaUseCase(repository, media)(
+        'ex_curl',
+        ExerciseMediaKind.image,
+        MediaSource.gallery,
+      );
+
+      expect((result as ApiFailure<void>).failure, isA<ValidationFailure>());
+      expect(media.files, isEmpty);
+      verifyNever(() => repository.saveExercise(any()));
+    });
+
+    test('a new video replaces the old video file', () async {
+      when(() => repository.getExercise('ex_curl')).thenAnswer(
+        (_) async => ApiSuccess(curl.copyWith(videoPath: 'old.mp4')),
+      );
+      final media = FakeMediaStore(pickResult: const ApiSuccess('new.mp4'));
+
+      await AttachExerciseMediaUseCase(repository, media)(
+        'ex_curl',
+        ExerciseMediaKind.video,
+        MediaSource.gallery,
+      );
+
+      expect(saved().videoPath, 'new.mp4');
+      expect(media.deleted, ['old.mp4']);
     });
 
     test('a video is stored alongside the photo', () async {
@@ -137,7 +172,7 @@ void main() {
 
       final exercise = saved();
       expect(exercise.videoPath, 'demo.mp4');
-      expect(exercise.imagePath, 'old.jpg');
+      expect(exercise.imagePaths, ['old.jpg']);
       expect(media.deleted, isEmpty);
     });
 
@@ -170,16 +205,31 @@ void main() {
     });
   });
 
-  test('removing a photo clears it and deletes the file', () async {
+  test('removing one photo keeps the others and deletes its file', () async {
+    when(() => repository.getExercise('ex_curl')).thenAnswer(
+      (_) async => ApiSuccess(curl.copyWith(imagePaths: ['a.jpg', 'b.jpg'])),
+    );
     final media = FakeMediaStore();
 
-    await RemoveExerciseMediaUseCase(repository, media)(
-      'ex_curl',
-      ExerciseMediaKind.image,
-    );
+    await RemoveExerciseMediaUseCase(
+      repository,
+      media,
+    ).photo('ex_curl', 'a.jpg');
 
-    expect(saved().imagePath, isNull);
-    expect(media.deleted, ['old.jpg']);
+    expect(saved().imagePaths, ['b.jpg']);
+    expect(media.deleted, ['a.jpg']);
+  });
+
+  test('removing an unknown photo changes nothing', () async {
+    final media = FakeMediaStore();
+
+    await RemoveExerciseMediaUseCase(
+      repository,
+      media,
+    ).photo('ex_curl', 'nope.jpg');
+
+    verifyNever(() => repository.saveExercise(any()));
+    expect(media.deleted, isEmpty);
   });
 
   group('ExerciseFilter', () {
@@ -226,5 +276,58 @@ void main() {
     expect((result as ApiSuccess<ExerciseDetails>).data.exercise, curl);
     expect(result.data.guide, isNull);
     expect(result.data.guideUnavailable, isTrue);
+  });
+
+  test('a legacy single photo is part of the photo list', () {
+    final legacy = Exercise(
+      id: 'e',
+      name: 'E',
+      primaryMuscle: MuscleGroup.chest,
+      category: ExerciseCategory.compound,
+      createdAt: DateTime(2026),
+      imagePath: 'old.jpg',
+      imagePaths: const ['a.jpg'],
+    );
+
+    expect(legacy.photos, ['old.jpg', 'a.jpg']);
+    expect(legacy.copyWith(clearLegacyImage: true).photos, ['a.jpg']);
+  });
+
+  test('removing a legacy photo clears the old field too', () async {
+    when(() => repository.getExercise('ex_curl')).thenAnswer(
+      (_) async => ApiSuccess(
+        Exercise(
+          id: 'ex_curl',
+          name: 'Curl',
+          primaryMuscle: MuscleGroup.biceps,
+          category: ExerciseCategory.isolation,
+          createdAt: DateTime(2026),
+          imagePath: 'legacy.jpg',
+        ),
+      ),
+    );
+    final media = FakeMediaStore();
+
+    await RemoveExerciseMediaUseCase(
+      repository,
+      media,
+    ).photo('ex_curl', 'legacy.jpg');
+
+    final exercise = saved();
+    expect(exercise.photos, isEmpty);
+    expect(exercise.imagePath, isNull);
+    expect(media.deleted, ['legacy.jpg']);
+  });
+
+  test('removing the video deletes its file', () async {
+    when(
+      () => repository.getExercise('ex_curl'),
+    ).thenAnswer((_) async => ApiSuccess(curl.copyWith(videoPath: 'demo.mp4')));
+    final media = FakeMediaStore();
+
+    await RemoveExerciseMediaUseCase(repository, media).video('ex_curl');
+
+    expect(saved().videoPath, isNull);
+    expect(media.deleted, ['demo.mp4']);
   });
 }

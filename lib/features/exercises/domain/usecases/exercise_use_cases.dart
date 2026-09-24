@@ -124,8 +124,8 @@ class RestoreExerciseUseCase {
 
 enum ExerciseMediaKind { image, video }
 
-/// Picks a photo or video for an exercise and replaces any previous one.
-/// Cancelling the picker changes nothing.
+/// Adds a photo (up to [Validators.maxExerciseImages]) or sets the video
+/// (replacing any previous one). Cancelling the picker changes nothing.
 class AttachExerciseMediaUseCase {
   const AttachExerciseMediaUseCase(this._repository, this._media);
 
@@ -137,6 +137,21 @@ class AttachExerciseMediaUseCase {
     ExerciseMediaKind kind,
     MediaSource source,
   ) async {
+    if (kind == ExerciseMediaKind.image) {
+      // Check before opening the picker, so the user isn't asked for a
+      // photo that can't be kept.
+      final before = await _repository.getExercise(exerciseId);
+      if (before case ApiSuccess(
+        :final data,
+      ) when data.photos.length >= Validators.maxExerciseImages) {
+        return const ApiFailure(
+          ValidationFailure([
+            'An exercise can have up to ${Validators.maxExerciseImages} '
+                'photos. Remove one to add another.',
+          ]),
+        );
+      }
+    }
     final picked = switch (kind) {
       ExerciseMediaKind.image => await _media.pickImage(source),
       ExerciseMediaKind.video => await _media.pickVideo(source),
@@ -147,8 +162,8 @@ class AttachExerciseMediaUseCase {
       case ApiSuccess(data: null):
         return voidSuccess;
       case ApiSuccess(:final data?):
-        // Re-read after the (slow) picker so a change made meanwhile, e.g.
-        // a video added while picking a photo, isn't overwritten.
+        // Re-read after the (slow) picker so a change made meanwhile isn't
+        // overwritten.
         final current = await _repository.getExercise(exerciseId);
         if (current case ApiFailure(:final failure)) {
           await _media.delete(data);
@@ -156,7 +171,10 @@ class AttachExerciseMediaUseCase {
         }
         final exercise = (current as ApiSuccess<Exercise>).data;
         final updated = switch (kind) {
-          ExerciseMediaKind.image => exercise.copyWith(imagePath: data),
+          ExerciseMediaKind.image => exercise.copyWith(
+            imagePaths: [...exercise.photos, data],
+            clearLegacyImage: true,
+          ),
           ExerciseMediaKind.video => exercise.copyWith(videoPath: data),
         };
         final saved = await _repository.saveExercise(updated);
@@ -164,38 +182,60 @@ class AttachExerciseMediaUseCase {
           await _media.delete(data);
           return saved;
         }
-        final previous = switch (kind) {
-          ExerciseMediaKind.image => exercise.imagePath,
-          ExerciseMediaKind.video => exercise.videoPath,
-        };
-        if (previous != null && previous != data) {
-          await _media.delete(previous);
+        final replacedVideo = exercise.videoPath;
+        if (kind == ExerciseMediaKind.video &&
+            replacedVideo != null &&
+            replacedVideo != data) {
+          await _media.delete(replacedVideo);
         }
         return voidSuccess;
     }
   }
 }
 
+/// Removes one photo or the video, and deletes its file.
 class RemoveExerciseMediaUseCase {
   const RemoveExerciseMediaUseCase(this._repository, this._media);
 
   final ExerciseRepository _repository;
   final MediaStore _media;
 
-  Future<VoidResult> call(String exerciseId, ExerciseMediaKind kind) async {
+  /// Removes the photo stored as [fileName]; unknown names change nothing.
+  Future<VoidResult> photo(String exerciseId, String fileName) => _remove(
+    exerciseId,
+    (e) => e.photos.contains(fileName)
+        ? (
+            fileName,
+            e.copyWith(
+              imagePaths: [
+                for (final p in e.photos)
+                  if (p != fileName) p,
+              ],
+              clearLegacyImage: true,
+            ),
+          )
+        : null,
+  );
+
+  Future<VoidResult> video(String exerciseId) => _remove(
+    exerciseId,
+    (e) => switch (e.videoPath) {
+      final path? => (path, e.copyWith(clearVideo: true)),
+      null => null,
+    },
+  );
+
+  Future<VoidResult> _remove(
+    String exerciseId,
+    (String, Exercise)? Function(Exercise) change,
+  ) async {
     final current = await _repository.getExercise(exerciseId);
     if (current case ApiFailure(:final failure)) return ApiFailure(failure);
-    final exercise = (current as ApiSuccess<Exercise>).data;
-    final previous = switch (kind) {
-      ExerciseMediaKind.image => exercise.imagePath,
-      ExerciseMediaKind.video => exercise.videoPath,
-    };
-    if (previous == null) return voidSuccess;
-    final saved = await _repository.saveExercise(switch (kind) {
-      ExerciseMediaKind.image => exercise.copyWith(clearImage: true),
-      ExerciseMediaKind.video => exercise.copyWith(clearVideo: true),
-    });
-    if (saved is ApiSuccess<void>) await _media.delete(previous);
+    final planned = change((current as ApiSuccess<Exercise>).data);
+    if (planned == null) return voidSuccess;
+    final (removed, updated) = planned;
+    final saved = await _repository.saveExercise(updated);
+    if (saved is ApiSuccess<void>) await _media.delete(removed);
     return saved;
   }
 }

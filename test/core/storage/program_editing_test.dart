@@ -7,9 +7,12 @@ import 'package:gainit/core/storage/local_data_sources/body_weight_local_data_so
 import 'package:gainit/core/storage/local_data_sources/program_local_data_source.dart';
 import 'package:gainit/core/storage/local_data_sources/workout_local_data_source.dart';
 import 'package:gainit/core/storage/seed/program_seed.dart';
+import 'package:gainit/features/exercises/data/repositories/exercise_repository_impl.dart';
+import 'package:gainit/features/exercises/domain/entities/exercise_details.dart';
 import 'package:gainit/features/progress/data/repositories/progress_repository_impl.dart';
 import 'package:gainit/features/progress/domain/entities/progress_entities.dart';
 
+import '../../helpers/fake_media_store.dart';
 import '../../helpers/hive_test_harness.dart';
 
 void main() {
@@ -261,14 +264,14 @@ void main() {
   group('restore', () {
     test('brings an archived exercise back, keeping its media', () async {
       final squat = programs.requireExercise('ex_squat');
-      await programs.saveExercise(squat.copyWith(imagePath: 'squat.jpg'));
+      await programs.saveExercise(squat.copyWith(imagePaths: ['squat.jpg']));
       await programs.archiveExercise('ex_squat');
 
       await programs.restoreExercise('ex_squat');
 
       final restored = programs.requireExercise('ex_squat');
       expect(restored.isArchived, isFalse);
-      expect(restored.imagePath, 'squat.jpg');
+      expect(restored.imagePaths, ['squat.jpg']);
       expect(programs.exercises().map((e) => e.id), contains('ex_squat'));
       // Not silently put back into a day.
       expect(programs.daysUsing('ex_squat'), isEmpty);
@@ -293,5 +296,33 @@ void main() {
         throwsA(isA<ValidationException>()),
       );
     });
+  });
+
+  test('the exercise screen skips photos whose files are gone', () async {
+    final squat = programs.requireExercise('ex_squat');
+    await programs.saveExercise(
+      squat.copyWith(imagePaths: ['kept.jpg', 'gone.jpg']),
+    );
+    final repository = ExerciseRepositoryImpl(
+      programs,
+      FakeMediaStore(files: {'kept.jpg'}),
+    );
+
+    final details =
+        (await repository.watchDetails('ex_squat').first)
+            as ApiSuccess<ExerciseDetails>;
+
+    expect(details.data.images.map((i) => i.fileName), ['kept.jpg']);
+  });
+
+  test('an 11th photo is refused when saving', () async {
+    final squat = programs.requireExercise('ex_squat');
+
+    expect(
+      () => programs.saveExercise(
+        squat.copyWith(imagePaths: [for (var i = 0; i < 11; i++) '$i.jpg']),
+      ),
+      throwsA(isA<ValidationException>()),
+    );
   });
 }

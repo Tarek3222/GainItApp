@@ -194,13 +194,16 @@ class ExerciseAdapter extends TypeAdapter<Exercise> {
       imagePath: fields[8] as String?,
       videoPath: fields[9] as String?,
       isArchived: fields[10] == null ? false : fields[10] as bool,
+      imagePaths: fields[11] == null
+          ? const []
+          : (fields[11] as List).cast<String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Exercise obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -222,7 +225,9 @@ class ExerciseAdapter extends TypeAdapter<Exercise> {
       ..writeByte(9)
       ..write(obj.videoPath)
       ..writeByte(10)
-      ..write(obj.isArchived);
+      ..write(obj.isArchived)
+      ..writeByte(11)
+      ..write(obj.imagePaths);
   }
 
   @override

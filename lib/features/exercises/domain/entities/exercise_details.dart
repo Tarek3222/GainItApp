@@ -3,12 +3,24 @@ import 'package:equatable/equatable.dart';
 import '../../../../core/domain/entities/program.dart';
 import 'exercise_guide.dart';
 
+/// A stored photo: its file name (to remove it) and resolved path (to show
+/// it).
+class ExerciseImage extends Equatable {
+  const ExerciseImage({required this.fileName, required this.path});
+
+  final String fileName;
+  final String path;
+
+  @override
+  List<Object?> get props => [fileName, path];
+}
+
 /// Everything the exercise screen shows besides progress.
 class ExerciseDetails extends Equatable {
   const ExerciseDetails({
     required this.exercise,
     required this.usedInDays,
-    this.imageFile,
+    this.images = const [],
     this.videoFile,
     this.guide,
     this.guideUnavailable = false,
@@ -16,8 +28,10 @@ class ExerciseDetails extends Equatable {
 
   final Exercise exercise;
 
-  /// Resolved absolute paths of the attached media, if present.
-  final String? imageFile;
+  /// Photos whose files still exist, in order.
+  final List<ExerciseImage> images;
+
+  /// Resolved absolute path of the video, if present.
   final String? videoFile;
 
   /// Research-based guide for built-in exercises; `null` for custom ones.
@@ -33,7 +47,7 @@ class ExerciseDetails extends Equatable {
       ExerciseDetails(
         exercise: exercise,
         usedInDays: usedInDays,
-        imageFile: imageFile,
+        images: images,
         videoFile: videoFile,
         guide: guide,
         guideUnavailable: unavailable,
@@ -51,7 +65,7 @@ class ExerciseDetails extends Equatable {
   @override
   List<Object?> get props => [
     exercise,
-    imageFile,
+    images,
     videoFile,
     guide,
     guideUnavailable,

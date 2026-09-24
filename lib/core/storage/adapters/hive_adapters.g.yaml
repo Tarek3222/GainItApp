@@ -63,7 +63,7 @@ types:
         index: 5
   Exercise:
     typeId: 4
-    nextIndex: 11
+    nextIndex: 12
     fields:
       id:
         index: 0
@@ -87,6 +87,8 @@ types:
         index: 9
       isArchived:
         index: 10
+      imagePaths:
+        index: 11
   ProgramExercise:
     typeId: 5
     nextIndex: 15

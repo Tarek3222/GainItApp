@@ -41,8 +41,11 @@ class ExerciseDetailsCubit extends StreamViewCubit<ExerciseDetails> {
     MediaSource source,
   ) async => ActionOutcome.from(await _attachMedia(exerciseId, kind, source));
 
-  Future<ActionOutcome<void>> removeMedia(ExerciseMediaKind kind) async =>
-      ActionOutcome.from(await _removeMedia(exerciseId, kind));
+  Future<ActionOutcome<void>> removeImage(String fileName) async =>
+      ActionOutcome.from(await _removeMedia.photo(exerciseId, fileName));
+
+  Future<ActionOutcome<void>> removeVideo() async =>
+      ActionOutcome.from(await _removeMedia.video(exerciseId));
 
   Future<ActionOutcome<void>> archive() async =>
       ActionOutcome.from(await _archive(exerciseId));

@@ -1,10 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gainit/core/domain/entities/enums.dart';
+import 'package:gainit/core/domain/entities/program.dart';
 import 'package:gainit/core/domain/entities/workout_session.dart';
 import 'package:gainit/core/errors/exceptions.dart';
 import 'package:gainit/core/storage/local_data_sources/program_local_data_source.dart';
 import 'package:gainit/core/storage/local_data_sources/settings_local_data_source.dart';
 import 'package:gainit/core/storage/local_data_sources/workout_local_data_source.dart';
+import 'package:gainit/core/storage/migrations/exercise_images_migration.dart';
 import 'package:gainit/core/storage/migrations/storage_migrator.dart';
 import 'package:gainit/core/storage/seed/program_seed.dart';
 import 'package:gainit/core/storage/storage_integrity_check.dart';
@@ -380,6 +382,57 @@ void main() {
       expect(harness.storage.sessions.length, 1);
     });
 
+    test('v3 moves the single exercise photo into the photo list', () async {
+      final settings = SettingsLocalDataSource(harness.storage);
+      await settings.setSchemaVersion(2);
+      final squat = harness.storage.exercises.get('ex_squat')!;
+      await harness.storage.exercises.put(
+        squat.id,
+        Exercise(
+          id: squat.id,
+          name: squat.name,
+          primaryMuscle: squat.primaryMuscle,
+          category: squat.category,
+          createdAt: squat.createdAt,
+          imagePath: 'legacy.jpg',
+        ),
+      );
+
+      final applied = await StorageMigrator(harness.storage, settings).run();
+
+      expect(applied, [3]);
+      final migrated = harness.storage.exercises.get('ex_squat')!;
+      expect(migrated.imagePaths, ['legacy.jpg']);
+      expect(migrated.imagePath, isNull);
+
+      // Running the step again changes nothing.
+      await migrateExerciseImagesToList(harness.storage);
+      expect(harness.storage.exercises.get('ex_squat'), migrated);
+    });
+
+    test('v3 does not duplicate a photo already in the list', () async {
+      final squat = harness.storage.exercises.get('ex_squat')!;
+      await harness.storage.exercises.put(
+        squat.id,
+        Exercise(
+          id: squat.id,
+          name: squat.name,
+          primaryMuscle: squat.primaryMuscle,
+          category: squat.category,
+          createdAt: squat.createdAt,
+          imagePath: 'a.jpg',
+          imagePaths: const ['a.jpg', 'b.jpg'],
+        ),
+      );
+
+      await migrateExerciseImagesToList(harness.storage);
+
+      expect(harness.storage.exercises.get('ex_squat')!.imagePaths, [
+        'a.jpg',
+        'b.jpg',
+      ]);
+    });
+
     test('v2 moves program and active-session weight steps to 1 kg', () async {
       final settings = SettingsLocalDataSource(harness.storage);
       await settings.setSchemaVersion(1);
@@ -411,7 +464,7 @@ void main() {
 
       final applied = await StorageMigrator(harness.storage, settings).run();
 
-      expect(applied, [2]);
+      expect(applied, [2, 3]);
       expect(
         harness.storage.programExercises.values.map((e) => e.weightStep),
         everyElement(1.0),

@@ -97,6 +97,7 @@ class Exercise extends Equatable {
     this.imagePath,
     this.videoPath,
     this.isArchived = false,
+    this.imagePaths = const [],
   });
 
   final String id;
@@ -110,13 +111,26 @@ class Exercise extends Equatable {
   /// The user's own notes on how to perform the exercise.
   final String? instructions;
 
-  /// File names in the app's media folder (see `MediaStore`).
+  /// Legacy single photo from before an exercise could have several. The
+  /// v3 storage migration moves it into [imagePaths]; nothing writes it.
   final String? imagePath;
+
+  /// Video file name in the app's media folder (see `MediaStore`).
   final String? videoPath;
+
+  /// Photo file names in the app's media folder, in the order shown.
+  final List<String> imagePaths;
 
   /// Hidden from the library and removed from the plan, but kept so past
   /// workouts and progress still find it.
   final bool isArchived;
+
+  /// All photos in display order. Includes a legacy [imagePath] that was
+  /// never migrated, so no photo is ever hidden or orphaned.
+  List<String> get photos => [
+    if (imagePath case final legacy? when !imagePaths.contains(legacy)) legacy,
+    ...imagePaths,
+  ];
 
   /// Every muscle the exercise trains, prime mover first.
   List<MuscleGroup> get targetMuscles => [primaryMuscle, ...secondaryMuscles];
@@ -128,8 +142,8 @@ class Exercise extends Equatable {
     ExerciseCategory? category,
     String? instructions,
     bool clearInstructions = false,
-    String? imagePath,
-    bool clearImage = false,
+    List<String>? imagePaths,
+    bool clearLegacyImage = false,
     String? videoPath,
     bool clearVideo = false,
     bool? isArchived,
@@ -145,7 +159,8 @@ class Exercise extends Equatable {
       instructions: clearInstructions
           ? null
           : (instructions ?? this.instructions),
-      imagePath: clearImage ? null : (imagePath ?? this.imagePath),
+      imagePath: clearLegacyImage ? null : imagePath,
+      imagePaths: imagePaths ?? this.imagePaths,
       videoPath: clearVideo ? null : (videoPath ?? this.videoPath),
       isArchived: isArchived ?? this.isArchived,
     );
@@ -164,6 +179,7 @@ class Exercise extends Equatable {
     imagePath,
     videoPath,
     isArchived,
+    imagePaths,
   ];
 }
 

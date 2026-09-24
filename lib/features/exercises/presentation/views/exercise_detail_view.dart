@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,7 +20,7 @@ import '../../domain/entities/exercise_details.dart';
 import '../../domain/entities/exercise_guide.dart';
 import '../../domain/usecases/exercise_use_cases.dart';
 import '../cubits/exercise_cubits.dart';
-import '../widgets/exercise_video_player.dart';
+import '../widgets/exercise_media_gallery.dart';
 
 /// One exercise: how to do it (muscles, media, research guide) and progress.
 class ExerciseDetailView extends StatelessWidget {
@@ -349,7 +347,7 @@ class _Bullets extends StatelessWidget {
   }
 }
 
-/// Photo and video of the exercise, with add / replace / remove actions.
+/// Photos and video of the exercise in a slider, with add / remove actions.
 class _MediaSection extends StatelessWidget {
   const _MediaSection({required this.details});
 
@@ -391,97 +389,34 @@ class _MediaSection extends StatelessWidget {
     }
   }
 
-  Future<void> _remove(BuildContext context, ExerciseMediaKind kind) async {
-    final outcome = await context.read<ExerciseDetailsCubit>().removeMedia(
-      kind,
-    );
-    if (outcome case ActionFailed(:final message) when context.mounted) {
+  void _report(BuildContext context, ActionOutcome<void> outcome) {
+    if (outcome case ActionFailed(:final message)) {
       showMessage(context, message);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final image = details.imageFile;
-    final video = details.videoFile;
-    final editable = !details.exercise.isArchived;
+    final cubit = context.read<ExerciseDetailsCubit>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionLabel('Photo & video'),
-        if (image != null) ...[
-          ClipRRect(
-            borderRadius: AppRadius.mdAll,
-            child: Image.file(
-              File(image),
-              fit: BoxFit.cover,
-              cacheWidth: 1080,
-              errorBuilder: (_, _, _) => const SizedBox.shrink(),
-            ),
-          ),
-          if (editable)
-            _MediaActions(
-              onReplace: () => _add(context, ExerciseMediaKind.image),
-              onRemove: () => _remove(context, ExerciseMediaKind.image),
-              label: 'photo',
-            ),
-        ],
-        if (video != null) ...[
-          const SizedBox(height: AppSpacing.sm),
-          ExerciseVideoPlayer(path: video),
-          if (editable)
-            _MediaActions(
-              onReplace: () => _add(context, ExerciseMediaKind.video),
-              onRemove: () => _remove(context, ExerciseMediaKind.video),
-              label: 'video',
-            ),
-        ],
-        if (editable && (image == null || video == null))
-          Wrap(
-            spacing: AppSpacing.sm,
-            children: [
-              if (image == null)
-                OutlinedButton.icon(
-                  onPressed: () => _add(context, ExerciseMediaKind.image),
-                  icon: const Icon(Icons.add_a_photo_outlined),
-                  label: const Text('Add photo'),
-                ),
-              if (video == null)
-                OutlinedButton.icon(
-                  onPressed: () => _add(context, ExerciseMediaKind.video),
-                  icon: const Icon(Icons.video_call_outlined),
-                  label: const Text('Add video'),
-                ),
-            ],
-          ),
+        const SectionLabel('Photos & video'),
+        ExerciseMediaGallery(
+          details: details,
+          editable: !details.exercise.isArchived,
+          onAddImage: () => _add(context, ExerciseMediaKind.image),
+          onAddVideo: () => _add(context, ExerciseMediaKind.video),
+          onRemoveImage: (name) async {
+            final outcome = await cubit.removeImage(name);
+            if (context.mounted) _report(context, outcome);
+          },
+          onRemoveVideo: () async {
+            final outcome = await cubit.removeVideo();
+            if (context.mounted) _report(context, outcome);
+          },
+        ),
       ],
     );
   }
-}
-
-class _MediaActions extends StatelessWidget {
-  const _MediaActions({
-    required this.onReplace,
-    required this.onRemove,
-    required this.label,
-  });
-
-  final VoidCallback onReplace;
-  final VoidCallback onRemove;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Row(
-    mainAxisAlignment: MainAxisAlignment.end,
-    children: [
-      TextButton(onPressed: onReplace, child: Text('Replace $label')),
-      TextButton(
-        onPressed: onRemove,
-        style: TextButton.styleFrom(
-          foregroundColor: context.semanticColors.danger,
-        ),
-        child: Text('Remove $label'),
-      ),
-    ],
-  );
 }

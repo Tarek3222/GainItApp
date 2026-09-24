@@ -21,11 +21,14 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
       guardStream(
         _programs.watch(() {
           final exercise = _programs.requireExercise(exerciseId);
-          final image = exercise.imagePath;
           final video = exercise.videoPath;
           return ExerciseDetails(
             exercise: exercise,
-            imageFile: image == null ? null : _media.resolve(image),
+            images: [
+              for (final name in exercise.photos)
+                if (_media.resolve(name) case final path?)
+                  ExerciseImage(fileName: name, path: path),
+            ],
             videoFile: video == null ? null : _media.resolve(video),
             usedInDays: _programs.daysUsing(exerciseId),
           );

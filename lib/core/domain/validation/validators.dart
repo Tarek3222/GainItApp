@@ -87,6 +87,7 @@ abstract final class Validators {
   ];
 
   static const maxExerciseName = 60;
+  static const maxExerciseImages = 10;
   static const maxNotes = 2000;
   static const maxDayName = 40;
 
@@ -98,6 +99,8 @@ abstract final class Validators {
       'The main muscle cannot also be a secondary muscle.',
     if ((e.instructions?.length ?? 0) > maxNotes)
       'Instructions must be $maxNotes characters or fewer.',
+    if (e.photos.length > maxExerciseImages)
+      'An exercise can have up to $maxExerciseImages photos.',
   ];
 
   static List<String> workoutDay(WorkoutDay d) => [
