@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "description": "Build runner reminder: warns when a code-generated file (datasource, response, request) is modified, reminding to run build_runner",
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'f=\"${CLAUDE_FILE_PATHS:-}\"; if [ -n \"$f\" ]; then for file in $f; do if [[ \"$file\" == *.dart ]] && [[ \"$file\" == *datasource* || \"$file\" == *data_source* || \"$file\" == *_response.dart || \"$file\" == *_request.dart ]]; then echo \"⚠️  Code-generated file modified. Run: dart run build_runner build --delete-conflicting-outputs\"; break; fi; done; fi; exit 0'"
+          }
+        ]
+      }
+    ]
+  }
+}

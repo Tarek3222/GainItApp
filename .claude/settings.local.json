@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la \"t:/flutter my projects/CLAUDE.md\" \"t:/flutter my projects/Work projects/rawa_app/CLAUDE.md\" \"/c/Users/loq/.claude/rules/context7.md\" 2>&1)",
+      "Read(//t/flutter my projects/**)",
+      "Bash(flutter analyze *)",
+      "Skill(flutter-code-review)",
+      "Skill(flutter-code-review:*)",
+      "mcp__claude_ai_Postman__getCollection"
+    ]
+  }
+}

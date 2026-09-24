@@ -1,0 +1,43 @@
+import '../../../../core/domain/entities/app_settings.dart';
+import '../../../../core/domain/entities/user_profile.dart';
+import '../../../../core/presentation/action_outcome.dart';
+import '../../../../core/presentation/view_state.dart';
+import '../../../../core/result/api_result.dart';
+import '../../domain/entities/settings_overview.dart';
+import '../../domain/usecases/settings_use_cases.dart';
+
+class SettingsCubit extends StreamViewCubit<SettingsOverview> {
+  SettingsCubit({
+    required this._watchSettings,
+    required this._updateSettings,
+    required this._updateProfile,
+    required this._deleteAllData,
+  });
+
+  final WatchSettingsUseCase _watchSettings;
+  final UpdateSettingsUseCase _updateSettings;
+  final UpdateProfileUseCase _updateProfile;
+  final DeleteAllDataUseCase _deleteAllData;
+
+  @override
+  Stream<ApiResult<SettingsOverview>> source() => _watchSettings();
+
+  Future<ActionOutcome<void>> updateSettings(
+    AppSettings Function(AppSettings current) change,
+  ) async {
+    final current = state;
+    if (current is! ViewLoaded<SettingsOverview>) {
+      return const ActionFailed('Settings are still loading.');
+    }
+    final previous = current.data.settings;
+    return ActionOutcome.from(
+      await _updateSettings(previous: previous, next: change(previous)),
+    );
+  }
+
+  Future<ActionOutcome<void>> updateProfile(UserProfile profile) async =>
+      ActionOutcome.from(await _updateProfile(profile));
+
+  Future<ActionOutcome<void>> deleteAllData() async =>
+      ActionOutcome.from(await _deleteAllData());
+}
