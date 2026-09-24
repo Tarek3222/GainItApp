@@ -1,5 +1,6 @@
 import '../hive_storage.dart';
 import '../local_data_sources/settings_local_data_source.dart';
+import 'one_kg_weight_step_migration.dart';
 
 /// One upgrade from `version - 1` to `version`. Steps must transform records
 /// in place and never clear boxes — workout history must survive (spec §23).
@@ -15,10 +16,14 @@ class StorageMigrator {
     this._storage,
     this._settings, {
     this.currentVersion = latestVersion,
-    this.steps = const {},
+    this.steps = defaultSteps,
   });
 
-  static const latestVersion = 1;
+  static const latestVersion = 2;
+
+  static const Map<int, MigrationStep> defaultSteps = {
+    2: migrateToOneKgWeightStep,
+  };
 
   final HiveStorage _storage;
   final SettingsLocalDataSource _settings;

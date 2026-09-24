@@ -250,13 +250,17 @@ class _WorkoutScaffoldState extends State<_WorkoutScaffold> {
               itemBuilder: (context, index) {
                 final exercise = workout.exercises[index];
                 final cubit = context.read<ActiveWorkoutCubit>();
-                return ExercisePanel(
-                  exercise: exercise,
-                  onLogSet: (weight, reps, rir) =>
-                      _logSet(exercise, weight, reps, rir),
-                  onUndoSet: (set) => cubit.undoSet(set.id),
-                  onToggleSkip: () =>
-                      cubit.setSkipped(exercise, skip: !exercise.isSkipped),
+                return BlocSelector<RestTimerCubit, RestTimerState, bool>(
+                  selector: (state) => state.isResting,
+                  builder: (context, isResting) => ExercisePanel(
+                    exercise: exercise,
+                    isResting: isResting,
+                    onLogSet: (weight, reps, rir) =>
+                        _logSet(exercise, weight, reps, rir),
+                    onUndoSet: (set) => cubit.undoSet(set.id),
+                    onToggleSkip: () =>
+                        cubit.setSkipped(exercise, skip: !exercise.isSkipped),
+                  ),
                 );
               },
             ),

@@ -379,5 +379,51 @@ void main() {
       expect(settings.schemaVersion(), 3);
       expect(harness.storage.sessions.length, 1);
     });
+
+    test('v2 moves program and active-session weight steps to 1 kg', () async {
+      final settings = SettingsLocalDataSource(harness.storage);
+      await settings.setSchemaVersion(1);
+      final legacy = {
+        for (final e in harness.storage.programExercises.values)
+          e.id: e.copyWith(weightStep: 2.5),
+      };
+      await harness.storage.programExercises.putAll(legacy);
+      final sessionId = (await start()).id;
+      final active = harness.storage.sessionExercises.values.first;
+      await harness.storage.sessionExercises.put(
+        active.id,
+        active.copyWith(weightStep: 2.5),
+      );
+      final finished = Fixtures.session(
+        id: 'done',
+        status: SessionStatus.completed,
+        completedAt: DateTime(2026, 3, 2, 19),
+      );
+      final finishedExercise = Fixtures.sessionExercise(
+        id: 'done-se',
+        sessionId: finished.id,
+      );
+      await harness.storage.sessionExercises.put(
+        finishedExercise.id,
+        finishedExercise,
+      );
+      await harness.storage.sessions.put(finished.id, finished);
+
+      final applied = await StorageMigrator(harness.storage, settings).run();
+
+      expect(applied, [2]);
+      expect(
+        harness.storage.programExercises.values.map((e) => e.weightStep),
+        everyElement(1.0),
+      );
+      expect(
+        harness.storage.sessionExercises.values
+            .where((e) => e.sessionId == sessionId)
+            .map((e) => e.weightStep),
+        everyElement(1.0),
+      );
+      // Finished workouts keep their original snapshot.
+      expect(harness.storage.sessionExercises.get('done-se')!.weightStep, 2.5);
+    });
   });
 }

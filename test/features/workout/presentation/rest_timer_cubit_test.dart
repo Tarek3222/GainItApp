@@ -200,4 +200,14 @@ void main() {
       );
     },
   );
+
+  test('only a running or paused timer counts as resting', () {
+    bool resting(RestTimerStatus status) =>
+        RestTimerState(status: status).isResting;
+
+    expect(resting(RestTimerStatus.running), isTrue);
+    expect(resting(RestTimerStatus.paused), isTrue);
+    expect(resting(RestTimerStatus.idle), isFalse);
+    expect(resting(RestTimerStatus.finished), isFalse);
+  });
 }

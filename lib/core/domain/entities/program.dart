@@ -145,6 +145,26 @@ class ProgramExercise extends Equatable {
   final int? supersetGroup;
   final String? notes;
 
+  ProgramExercise copyWith({double? weightStep}) {
+    return ProgramExercise(
+      id: id,
+      workoutDayId: workoutDayId,
+      exerciseId: exerciseId,
+      orderIndex: orderIndex,
+      workingSets: workingSets,
+      repMin: repMin,
+      repMax: repMax,
+      restMinSeconds: restMinSeconds,
+      restMaxSeconds: restMaxSeconds,
+      rirMin: rirMin,
+      rirMax: rirMax,
+      weightStep: weightStep ?? this.weightStep,
+      progressionType: progressionType,
+      supersetGroup: supersetGroup,
+      notes: notes,
+    );
+  }
+
   @override
   List<Object?> get props => [
     id,
