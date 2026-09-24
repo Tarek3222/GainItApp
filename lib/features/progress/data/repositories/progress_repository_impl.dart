@@ -69,6 +69,8 @@ class ProgressRepositoryImpl implements ProgressRepository {
     final plannedConfig = <({MuscleGroup muscle, int sets})>[];
     if (program != null) {
       for (final day in _programs.days(program.id)) {
+        // Rest days keep their exercises for later but aren't trained.
+        if (!day.isWorkout) continue;
         for (final pe in _programs.programExercisesForDay(day.id)) {
           final exercise = _programs.exercise(pe.exerciseId);
           if (exercise == null) continue;

@@ -18,7 +18,16 @@ class PlanView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Plan')),
+      appBar: AppBar(
+        title: const Text('Plan'),
+        actions: [
+          IconButton(
+            tooltip: 'Exercise library',
+            icon: const Icon(Icons.fitness_center),
+            onPressed: () => context.push(RoutePaths.exercises),
+          ),
+        ],
+      ),
       body: ViewStateBuilder<PlanCubit, WeeklyPlan>(
         onRetry: (cubit) => cubit.start(),
         builder: (context, plan) => PageBody(
@@ -76,9 +85,12 @@ class PlanDayCard extends StatelessWidget {
         : 'Recovery day';
 
     return AppCard(
-      onTap: isWorkout
-          ? () => context.push(RoutePaths.planDay(item.day.id))
-          : null,
+      // Rest days have nothing to preview, so they open the editor.
+      onTap: () => context.push(
+        isWorkout
+            ? RoutePaths.planDay(item.day.id)
+            : RoutePaths.editPlanDay(item.day.id),
+      ),
       borderColor: item.status == DayStatus.today ? color : null,
       color: isWorkout ? null : theme.scaffoldBackgroundColor,
       child: Row(
@@ -114,6 +126,11 @@ class PlanDayCard extends StatelessWidget {
                 style: theme.textTheme.bodySmall?.copyWith(color: color),
               ),
             ],
+          ),
+          IconButton(
+            tooltip: 'Edit ${item.day.name}',
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () => context.push(RoutePaths.editPlanDay(item.day.id)),
           ),
         ],
       ),

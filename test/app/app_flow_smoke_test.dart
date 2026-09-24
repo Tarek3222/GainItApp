@@ -224,6 +224,17 @@ void main() {
     expect(find.text('Set 1'), findsOneWidget);
     await tester.tap(find.text('Squat / Hack Squat'));
     await tester.pumpAndSettle();
+    // Guide tab: target muscles and the bundled research guide.
+    expect(find.text('TARGET MUSCLES'), findsOneWidget);
+    expect(find.text('Quads'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('WHAT RESEARCH SAYS'),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.textContaining('Kubo K'), findsOneWidget);
+    await tester.tap(find.text('Progress'));
+    await tester.pumpAndSettle();
     expect(find.text('Est. 1RM'), findsOneWidget);
     await tester.pageBack();
     await tester.pumpAndSettle();
@@ -237,5 +248,83 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Log weight'), findsOneWidget);
     expect(find.text('70 kg'), findsWidgets);
+  });
+
+  testWidgets('a workout day and the exercise library can be customised', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(420, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(GainItApp(router: createRouter()));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Sam');
+    await confirmPickers(tester, ['Use 170 cm', 'Use 70 kg', 'Use 25 years']);
+    await scrollPageToEnd(tester);
+    await tester.tap(find.text('Start training'));
+    await tester.pumpAndSettle();
+
+    // Plan → edit Monday.
+    await tester.tap(find.text('Plan'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byTooltip('Edit Legs'));
+    await tester.tap(find.byTooltip('Edit Legs'));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit day'), findsOneWidget);
+
+    // Rename the day.
+    await tester.tap(find.text('Legs'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Lower body');
+    await tester.tap(find.widgetWithText(TextButton, 'Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('Lower body'), findsOneWidget);
+
+    // Add an exercise from the library.
+    await tester.scrollUntilVisible(
+      find.text('Add exercise'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Add exercise'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'hammer');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Hammer Curl'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Hammer Curl'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Hammer Curl'), findsOneWidget);
+    expect(
+      storage.programExercises.values.where(
+        (p) => p.workoutDayId == 'day_mon_legs',
+      ),
+      hasLength(7),
+    );
+
+    // Create a custom exercise from the library.
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Exercise library'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('New exercise'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Name'),
+      'Nordic Curl',
+    );
+    await scrollPageToEnd(tester);
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'nordic');
+    await tester.pumpAndSettle();
+    expect(find.text('Nordic Curl'), findsOneWidget);
+    expect(
+      storage.exercises.values.where((e) => e.isCustom).single.name,
+      'Nordic Curl',
+    );
   });
 }

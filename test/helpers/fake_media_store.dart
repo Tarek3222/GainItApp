@@ -23,6 +23,12 @@ class FakeMediaStore implements MediaStore {
   }
 
   @override
+  Future<ApiResult<String?>> pickVideo(MediaSource source) async {
+    if (pickResult case ApiSuccess(:final data?)) files.add(data);
+    return pickResult;
+  }
+
+  @override
   String? resolve(String fileName) =>
       files.contains(fileName) ? '/media/$fileName' : null;
 

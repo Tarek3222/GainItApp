@@ -12,6 +12,9 @@ abstract interface class MediaStore {
   /// File name of the picked image, or `null` when the user cancelled.
   Future<ApiResult<String?>> pickImage(MediaSource source);
 
+  /// File name of the picked video, or `null` when the user cancelled.
+  Future<ApiResult<String?>> pickVideo(MediaSource source);
+
   /// Absolute path for displaying [fileName], or `null` when the file is
   /// missing.
   String? resolve(String fileName);
