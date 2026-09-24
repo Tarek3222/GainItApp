@@ -1,9 +1,16 @@
+import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../features/body_weight/data/repositories/body_weight_repository_impl.dart';
 import '../../features/body_weight/domain/repositories/body_weight_repository.dart';
 import '../../features/body_weight/domain/usecases/body_weight_use_cases.dart';
 import '../../features/body_weight/presentation/cubits/body_weight_cubit.dart';
+import '../../features/exercises/data/repositories/exercise_guide_repository_impl.dart';
+import '../../features/exercises/data/repositories/exercise_repository_impl.dart';
+import '../../features/exercises/domain/repositories/exercise_guide_repository.dart';
+import '../../features/exercises/domain/repositories/exercise_repository.dart';
+import '../../features/exercises/domain/usecases/exercise_use_cases.dart';
+import '../../features/exercises/presentation/cubits/exercise_cubits.dart';
 import '../../features/history/data/repositories/history_repository_impl.dart';
 import '../../features/history/domain/repositories/history_repository.dart';
 import '../../features/history/domain/usecases/history_use_cases.dart';
@@ -18,6 +25,7 @@ import '../../features/onboarding/domain/usecases/complete_onboarding_use_case.d
 import '../../features/onboarding/presentation/cubits/onboarding_cubit.dart';
 import '../../features/program/data/repositories/program_repository_impl.dart';
 import '../../features/program/domain/repositories/program_repository.dart';
+import '../../features/program/domain/usecases/edit_workout_day_use_cases.dart';
 import '../../features/program/domain/usecases/watch_weekly_plan_use_case.dart';
 import '../../features/program/domain/usecases/watch_workout_overview_use_case.dart';
 import '../../features/program/presentation/cubits/plan_cubits.dart';
@@ -97,6 +105,12 @@ void configureDependencies({
     ..registerLazySingleton<UnitPreferenceRepository>(
       () => UnitPreferenceRepositoryImpl(getIt()),
     )
+    ..registerLazySingleton<ExerciseRepository>(
+      () => ExerciseRepositoryImpl(getIt(), getIt()),
+    )
+    ..registerLazySingleton<ExerciseGuideRepository>(
+      () => ExerciseGuideRepositoryImpl(rootBundle.loadString),
+    )
     ..registerLazySingleton<StartupRepository>(
       () => StartupRepositoryImpl(getIt(), getIt()),
     )
@@ -169,6 +183,20 @@ void configureDependencies({
     ..registerFactory(() => WatchSettingsUseCase(getIt(), getIt()))
     ..registerFactory(() => UpdateSettingsUseCase(getIt(), getIt()))
     ..registerFactory(() => WatchUnitSystemUseCase(getIt()))
+    ..registerFactory(() => WatchExerciseLibraryUseCase(getIt()))
+    ..registerFactory(() => WatchExerciseDetailsUseCase(getIt(), getIt()))
+    ..registerFactory(() => GetExerciseUseCase(getIt()))
+    ..registerFactory(() => SaveExerciseUseCase(getIt(), getIt(), getIt()))
+    ..registerFactory(() => ArchiveExerciseUseCase(getIt()))
+    ..registerFactory(() => RestoreExerciseUseCase(getIt()))
+    ..registerFactory(() => AttachExerciseMediaUseCase(getIt(), getIt()))
+    ..registerFactory(() => RemoveExerciseMediaUseCase(getIt(), getIt()))
+    ..registerFactory(() => WatchDayEditorUseCase(getIt()))
+    ..registerFactory(() => UpdateWorkoutDayUseCase(getIt()))
+    ..registerFactory(() => AddExerciseToDayUseCase(getIt(), getIt()))
+    ..registerFactory(() => UpdateExerciseConfigUseCase(getIt()))
+    ..registerFactory(() => RemoveExerciseFromDayUseCase(getIt()))
+    ..registerFactory(() => ReorderDayExercisesUseCase(getIt()))
     ..registerFactory(() => UpdateProfileUseCase(getIt(), getIt()))
     ..registerFactory(
       () => UpdateProfilePhotoUseCase(getIt(), getIt(), getIt()),
@@ -181,6 +209,35 @@ void configureDependencies({
   // Cubits (created per route by BlocProvider; UnitsCubit at the app root)
   getIt
     ..registerFactory(() => UnitsCubit(getIt()))
+    ..registerFactory(() => ExerciseLibraryCubit(watchLibrary: getIt()))
+    ..registerFactoryParam<ExerciseDetailsCubit, String, void>(
+      (exerciseId, _) => ExerciseDetailsCubit(
+        exerciseId: exerciseId,
+        watchDetails: getIt(),
+        attachMedia: getIt(),
+        removeMedia: getIt(),
+        archive: getIt(),
+        restore: getIt(),
+      ),
+    )
+    ..registerFactoryParam<ExerciseEditorCubit, String?, void>(
+      (exerciseId, _) => ExerciseEditorCubit(
+        exerciseId: exerciseId,
+        getExercise: getIt(),
+        saveExercise: getIt(),
+      ),
+    )
+    ..registerFactoryParam<WorkoutDayEditorCubit, String, void>(
+      (dayId, _) => WorkoutDayEditorCubit(
+        dayId: dayId,
+        watchDay: getIt(),
+        updateDay: getIt(),
+        addExercise: getIt(),
+        updateConfig: getIt(),
+        removeExercise: getIt(),
+        reorder: getIt(),
+      ),
+    )
     ..registerFactory(
       () => SplashCubit(getStatus: getIt(), abandonWorkout: getIt()),
     )

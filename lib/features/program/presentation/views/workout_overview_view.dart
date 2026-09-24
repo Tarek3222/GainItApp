@@ -5,11 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/route_paths.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
+import '../../../../core/domain/entities/program.dart';
 import '../../../../core/presentation/action_outcome.dart';
 import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/presentation/view_state.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
+import '../../../../core/widgets/muscle_chips.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/view_state_builder.dart';
 import '../../domain/entities/plan_entities.dart';
@@ -33,15 +35,58 @@ class WorkoutOverviewView extends StatelessWidget {
                   : '',
               builder: (_, title) => Text(title),
             ),
+        actions: [
+          Builder(
+            builder: (context) => IconButton(
+              tooltip: 'Edit workout',
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () => context.push(
+                RoutePaths.editPlanDay(
+                  context.read<WorkoutOverviewCubit>().dayId,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: ViewStateBuilder<WorkoutOverviewCubit, WorkoutOverview>(
         onRetry: (cubit) => cubit.start(),
-        builder: (context, overview) => Column(
-          children: [
-            Expanded(child: _OverviewList(overview: overview)),
-            _StartButton(inProgress: overview.isInProgress),
-          ],
-        ),
+        builder: (context, overview) {
+          final canTrain =
+              overview.day.isWorkout && overview.exercises.isNotEmpty;
+          Widget edit(String label) => FilledButton.icon(
+            onPressed: () =>
+                context.push(RoutePaths.editPlanDay(overview.day.id)),
+            icon: const Icon(Icons.edit_outlined),
+            label: Text(label),
+          );
+          return Column(
+            children: [
+              Expanded(
+                child: switch (overview) {
+                  WorkoutOverview(day: WorkoutDay(isWorkout: false)) =>
+                    EmptyState(
+                      icon: Icons.bedtime_outlined,
+                      title: 'Rest day',
+                      message: 'Switch it to a workout day to train.',
+                      action: edit('Edit day'),
+                    ),
+                  WorkoutOverview(exercises: []) => EmptyState(
+                    icon: Icons.playlist_add,
+                    title: 'No exercises yet',
+                    message: 'Add exercises to build this workout.',
+                    action: edit('Edit workout'),
+                  ),
+                  _ => _OverviewList(overview: overview),
+                },
+              ),
+              // An in-progress workout can always be resumed, even if the
+              // day was edited meanwhile.
+              if (canTrain || overview.isInProgress)
+                _StartButton(inProgress: overview.isInProgress),
+            ],
+          );
+        },
       ),
     );
   }
@@ -69,13 +114,15 @@ class _OverviewList extends StatelessWidget {
             style: theme.textTheme.bodySmall,
           ),
         const SizedBox(height: AppSpacing.md),
-        Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: [
-            for (final entry in overview.plannedVolume.entries)
-              Chip(label: Text('${entry.key.label} ${entry.value}')),
-          ],
+        const SectionLabel('Target muscles'),
+        MuscleChips(
+          primary: overview.targetMuscles,
+          secondary: overview.assistingMuscles,
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          'Sets: ${[for (final m in overview.targetMuscles) '${m.label} ${overview.plannedVolume[m]}'].join(' · ')}',
+          style: theme.textTheme.bodySmall,
         ),
         const SizedBox(height: AppSpacing.md),
         for (final (index, exercise) in overview.exercises.indexed) ...[
@@ -119,6 +166,12 @@ class _ExerciseTile extends StatelessWidget {
                   visualDensity: VisualDensity.compact,
                 ),
             ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          MuscleChips(
+            primary: [exercise.primaryMuscle],
+            secondary: exercise.secondaryMuscles,
+            dense: true,
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(

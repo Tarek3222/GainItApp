@@ -32,30 +32,59 @@ class LocalMediaStore implements MediaStore {
   static const _maxImageSide = 1024.0;
   static const _imageQuality = 85;
 
+  /// Form demos are short. The duration limit only applies when recording,
+  /// so gallery videos are also capped by size.
+  static const _maxVideoLength = Duration(seconds: 60);
+  static const maxVideoBytes = 150 * 1024 * 1024;
+
   @override
-  Future<ApiResult<String?>> pickImage(MediaSource source) async {
+  Future<ApiResult<String?>> pickImage(MediaSource source) => _pick(
+    () => _picker.pickImage(
+      source: _source(source),
+      maxWidth: _maxImageSide,
+      maxHeight: _maxImageSide,
+      imageQuality: _imageQuality,
+    ),
+  );
+
+  @override
+  Future<ApiResult<String?>> pickVideo(MediaSource source) => _pick(
+    () => _picker.pickVideo(
+      source: _source(source),
+      maxDuration: _maxVideoLength,
+    ),
+    maxBytes: maxVideoBytes,
+    tooLarge: 'Videos must be under 150 MB. Trim the clip and try again.',
+  );
+
+  static ImageSource _source(MediaSource source) => switch (source) {
+    MediaSource.camera => ImageSource.camera,
+    MediaSource.gallery => ImageSource.gallery,
+  };
+
+  Future<ApiResult<String?>> _pick(
+    Future<XFile?> Function() pick, {
+    int? maxBytes,
+    String? tooLarge,
+  }) async {
     try {
-      final picked = await _picker.pickImage(
-        source: switch (source) {
-          MediaSource.camera => ImageSource.camera,
-          MediaSource.gallery => ImageSource.gallery,
-        },
-        maxWidth: _maxImageSide,
-        maxHeight: _maxImageSide,
-        imageQuality: _imageQuality,
-      );
+      final picked = await pick();
       if (picked == null) return const ApiSuccess(null);
+      if (maxBytes != null && await picked.length() > maxBytes) {
+        await _removePickerCopy(picked.path);
+        return ApiFailure(ValidationFailure([tooLarge ?? 'File too large.']));
+      }
       return ApiSuccess(await _keep(picked));
     } on PlatformException catch (error) {
-      if (kDebugMode) debugPrint('LocalMediaStore.pickImage: $error');
+      if (kDebugMode) debugPrint('LocalMediaStore.pick: $error');
       return const ApiFailure(
         UnexpectedFailure(
           'Could not open the camera or gallery. Check app permissions.',
         ),
       );
     } on FileSystemException catch (error) {
-      if (kDebugMode) debugPrint('LocalMediaStore.pickImage: $error');
-      return const ApiFailure(StorageFailure('Could not save the photo.'));
+      if (kDebugMode) debugPrint('LocalMediaStore.pick: $error');
+      return const ApiFailure(StorageFailure('Could not save the file.'));
     }
   }
 

@@ -57,12 +57,18 @@ void main() {
     HomeData data({
       List<BodyWeightEntry> weights = const [],
       List<ExercisePerformancePair> last = const [],
+      Map<String, int> exerciseCounts = const {
+        'day_sun': 7,
+        'day_mon': 6,
+        'day_wed': 7,
+        'day_thu': 7,
+      },
     }) => HomeData(
       profile: null,
       program: Fixtures.program(startDate: DateTime(2026, 2, 1)),
       days: days,
       plannedSetsPerDay: const {'day_mon': 20},
-      exerciseCountPerDay: const {'day_mon': 6},
+      exerciseCountPerDay: exerciseCounts,
       completedSessions: [sundayDone],
       workingSetsPerSession: const {'sun1': 19},
       weights: weights,
@@ -80,6 +86,22 @@ void main() {
       expect(dashboard.nextWorkout!.dayId, 'day_mon');
       expect(dashboard.nextWorkout!.isToday, isTrue);
       expect(dashboard.nextWorkout!.totalSets, 20);
+    });
+
+    test('skips a workout day that has no exercises', () {
+      final dashboard =
+          WatchHomeDashboardUseCase(
+            _MockHomeRepository(),
+            clock,
+            _NoDayChanges(),
+          ).build(
+            data(
+              exerciseCounts: const {'day_sun': 7, 'day_wed': 7, 'day_thu': 7},
+            ),
+          );
+
+      expect(dashboard.nextWorkout!.dayId, 'day_wed');
+      expect(dashboard.weekPlannedWorkouts, 3);
     });
 
     test('counts this week\'s completed workouts and working sets', () {

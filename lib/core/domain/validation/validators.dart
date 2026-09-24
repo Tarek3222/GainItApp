@@ -9,6 +9,10 @@ import '../entities/workout_session.dart';
 /// human-readable errors; empty means valid.
 abstract final class Validators {
   static const maxWeightKg = 1000.0;
+  static const maxSets = 20;
+  static const maxRestSeconds = 10 * 60;
+  static const maxWeightStepKg = 10.0;
+  static const maxSupersetGroup = 4;
 
   /// Lightest weight the set editor offers. Any weight above 0 is valid;
   /// this only sets the −/+ floor so small plates stay reachable.
@@ -39,7 +43,20 @@ abstract final class Validators {
       'Maximum rest must not be below the minimum.',
     if (e.rirMin < 0) 'RIR cannot be negative.',
     if (e.rirMax < e.rirMin) 'Maximum RIR must not be below the minimum.',
-    if (e.weightStep <= 0) 'Weight step must be positive.',
+    if (!e.weightStep.isFinite || e.weightStep <= 0)
+      'Weight step must be positive.',
+    if (e.weightStep > maxWeightStepKg)
+      'Weight step must be $maxWeightStepKg kg or less.',
+    if (e.workingSets > maxSets) 'Working sets must be $maxSets or fewer.',
+    if (e.repMax > maxReps) 'Reps must be $maxReps or fewer.',
+    if (e.restMaxSeconds > maxRestSeconds)
+      'Rest must be ${maxRestSeconds ~/ 60} minutes or less.',
+    if (e.supersetGroup != null &&
+        (e.supersetGroup! < 1 || e.supersetGroup! > maxSupersetGroup))
+      'Superset must be between 1 and $maxSupersetGroup.',
+    if (e.rirMax > maxRir) 'RIR must be $maxRir or less.',
+    if ((e.notes?.length ?? 0) > maxNotes)
+      'Notes must be $maxNotes characters or fewer.',
   ];
 
   static List<String> sessionExercise(SessionExercise e) => [
@@ -67,6 +84,26 @@ abstract final class Validators {
   static List<String> age(int age) => [
     if (age < minAge || age > maxAge)
       'Age must be between $minAge and $maxAge.',
+  ];
+
+  static const maxExerciseName = 60;
+  static const maxNotes = 2000;
+  static const maxDayName = 40;
+
+  static List<String> exercise(Exercise e) => [
+    if (e.name.trim().isEmpty) 'An exercise needs a name.',
+    if (e.name.trim().length > maxExerciseName)
+      'Exercise names must be $maxExerciseName characters or fewer.',
+    if (e.secondaryMuscles.contains(e.primaryMuscle))
+      'The main muscle cannot also be a secondary muscle.',
+    if ((e.instructions?.length ?? 0) > maxNotes)
+      'Instructions must be $maxNotes characters or fewer.',
+  ];
+
+  static List<String> workoutDay(WorkoutDay d) => [
+    if (d.name.trim().isEmpty) 'A day needs a name.',
+    if (d.name.trim().length > maxDayName)
+      'Day names must be $maxDayName characters or fewer.',
   ];
 
   static List<String> program(Program p) => [

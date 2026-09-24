@@ -3,9 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>NSCameraUsageDescription</key>
-	<string>GainIt uses the camera to take your profile photo.</string>
+	<string>GainIt uses the camera to take your profile photo and exercise photos or videos.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>GainIt lets you choose a profile photo from your library.</string>
+	<string>GainIt lets you choose a profile photo and exercise photos or videos from your library.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>GainIt records sound when you film an exercise video.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

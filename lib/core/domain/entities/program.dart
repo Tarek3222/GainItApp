@@ -70,6 +70,15 @@ class WorkoutDay extends Equatable {
 
   bool get isWorkout => type == DayType.workout;
 
+  WorkoutDay copyWith({String? name, DayType? type}) => WorkoutDay(
+    id: id,
+    programId: programId,
+    weekday: weekday,
+    name: name ?? this.name,
+    type: type ?? this.type,
+    sortOrder: sortOrder,
+  );
+
   @override
   List<Object?> get props => [id, programId, weekday, name, type, sortOrder];
 }
@@ -84,6 +93,10 @@ class Exercise extends Equatable {
     required this.createdAt,
     this.secondaryMuscles = const [],
     this.isCustom = false,
+    this.instructions,
+    this.imagePath,
+    this.videoPath,
+    this.isArchived = false,
   });
 
   final String id;
@@ -94,6 +107,50 @@ class Exercise extends Equatable {
   final bool isCustom;
   final DateTime createdAt;
 
+  /// The user's own notes on how to perform the exercise.
+  final String? instructions;
+
+  /// File names in the app's media folder (see `MediaStore`).
+  final String? imagePath;
+  final String? videoPath;
+
+  /// Hidden from the library and removed from the plan, but kept so past
+  /// workouts and progress still find it.
+  final bool isArchived;
+
+  /// Every muscle the exercise trains, prime mover first.
+  List<MuscleGroup> get targetMuscles => [primaryMuscle, ...secondaryMuscles];
+
+  Exercise copyWith({
+    String? name,
+    MuscleGroup? primaryMuscle,
+    List<MuscleGroup>? secondaryMuscles,
+    ExerciseCategory? category,
+    String? instructions,
+    bool clearInstructions = false,
+    String? imagePath,
+    bool clearImage = false,
+    String? videoPath,
+    bool clearVideo = false,
+    bool? isArchived,
+  }) {
+    return Exercise(
+      id: id,
+      name: name ?? this.name,
+      primaryMuscle: primaryMuscle ?? this.primaryMuscle,
+      secondaryMuscles: secondaryMuscles ?? this.secondaryMuscles,
+      category: category ?? this.category,
+      isCustom: isCustom,
+      createdAt: createdAt,
+      instructions: clearInstructions
+          ? null
+          : (instructions ?? this.instructions),
+      imagePath: clearImage ? null : (imagePath ?? this.imagePath),
+      videoPath: clearVideo ? null : (videoPath ?? this.videoPath),
+      isArchived: isArchived ?? this.isArchived,
+    );
+  }
+
   @override
   List<Object?> get props => [
     id,
@@ -103,6 +160,10 @@ class Exercise extends Equatable {
     category,
     isCustom,
     createdAt,
+    instructions,
+    imagePath,
+    videoPath,
+    isArchived,
   ];
 }
 
@@ -145,23 +206,39 @@ class ProgramExercise extends Equatable {
   final int? supersetGroup;
   final String? notes;
 
-  ProgramExercise copyWith({double? weightStep}) {
+  ProgramExercise copyWith({
+    int? orderIndex,
+    int? workingSets,
+    int? repMin,
+    int? repMax,
+    int? restMinSeconds,
+    int? restMaxSeconds,
+    int? rirMin,
+    int? rirMax,
+    double? weightStep,
+    int? supersetGroup,
+    bool clearSuperset = false,
+    String? notes,
+    bool clearNotes = false,
+  }) {
     return ProgramExercise(
       id: id,
       workoutDayId: workoutDayId,
       exerciseId: exerciseId,
-      orderIndex: orderIndex,
-      workingSets: workingSets,
-      repMin: repMin,
-      repMax: repMax,
-      restMinSeconds: restMinSeconds,
-      restMaxSeconds: restMaxSeconds,
-      rirMin: rirMin,
-      rirMax: rirMax,
+      orderIndex: orderIndex ?? this.orderIndex,
+      workingSets: workingSets ?? this.workingSets,
+      repMin: repMin ?? this.repMin,
+      repMax: repMax ?? this.repMax,
+      restMinSeconds: restMinSeconds ?? this.restMinSeconds,
+      restMaxSeconds: restMaxSeconds ?? this.restMaxSeconds,
+      rirMin: rirMin ?? this.rirMin,
+      rirMax: rirMax ?? this.rirMax,
       weightStep: weightStep ?? this.weightStep,
       progressionType: progressionType,
-      supersetGroup: supersetGroup,
-      notes: notes,
+      supersetGroup: clearSuperset
+          ? null
+          : (supersetGroup ?? this.supersetGroup),
+      notes: clearNotes ? null : (notes ?? this.notes),
     );
   }
 

@@ -38,6 +38,7 @@ class WatchWorkoutOverviewUseCase {
           exerciseId: item.exercise.id,
           name: item.exercise.name,
           primaryMuscle: item.exercise.primaryMuscle,
+          secondaryMuscles: item.exercise.secondaryMuscles,
           config: item.config,
           lastPerformance: item.history.isEmpty ? null : item.history.first,
           recommendation: _engine.recommend(

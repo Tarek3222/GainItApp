@@ -34,12 +34,18 @@ class WatchHomeDashboardUseCase {
     }).toList();
     final completedDayIds = thisWeek.map((s) => s.workoutDayId).toSet();
 
+    // A workout day with no exercises can't be started, so it is never
+    // suggested or counted as planned.
+    final trainableDays = [
+      for (final d in data.days)
+        if (!d.isWorkout || (data.exerciseCountPerDay[d.id] ?? 0) > 0) d,
+    ];
     final next = ScheduleResolver.nextWorkout(
-      days: data.days,
+      days: trainableDays,
       today: now,
       completedDayIdsThisWeek: completedDayIds,
     );
-    final workoutDayIds = data.days
+    final workoutDayIds = trainableDays
         .where((d) => d.isWorkout)
         .map((d) => d.id)
         .toSet();

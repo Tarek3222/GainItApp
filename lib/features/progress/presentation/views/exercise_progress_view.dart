@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../core/presentation/units/unit_format.dart';
-import '../../../../core/presentation/view_state.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/state_views.dart';
@@ -16,35 +14,21 @@ import '../cubits/progress_cubits.dart';
 
 enum _Metric { oneRepMax, topWeight, reps, volume }
 
-class ExerciseProgressView extends StatelessWidget {
-  const ExerciseProgressView({super.key});
+/// Progress tab of the exercise screen: best lifts, trend and history.
+class ExerciseProgressTab extends StatelessWidget {
+  const ExerciseProgressTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title:
-            BlocSelector<
-              ExerciseProgressCubit,
-              ViewState<ExerciseProgress>,
-              String
-            >(
-              selector: (state) => state is ViewLoaded<ExerciseProgress>
-                  ? state.data.exercise.name
-                  : '',
-              builder: (_, name) => Text(name),
-            ),
-      ),
-      body: ViewStateBuilder<ExerciseProgressCubit, ExerciseProgress>(
-        onRetry: (cubit) => cubit.load(),
-        builder: (context, progress) => progress.isEmpty
-            ? const EmptyState(
-                icon: Icons.show_chart,
-                title: 'No history yet',
-                message: 'Complete this exercise in a workout to see progress.',
-              )
-            : _Body(progress: progress),
-      ),
+    return ViewStateBuilder<ExerciseProgressCubit, ExerciseProgress>(
+      onRetry: (cubit) => cubit.load(),
+      builder: (context, progress) => progress.isEmpty
+          ? const EmptyState(
+              icon: Icons.show_chart,
+              title: 'No history yet',
+              message: 'Complete this exercise in a workout to see progress.',
+            )
+          : _Body(progress: progress),
     );
   }
 }

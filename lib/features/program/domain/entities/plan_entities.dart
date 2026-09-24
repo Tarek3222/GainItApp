@@ -112,12 +112,14 @@ class OverviewExercise extends Equatable {
     required this.primaryMuscle,
     required this.config,
     required this.recommendation,
+    this.secondaryMuscles = const [],
     this.lastPerformance,
   });
 
   final String exerciseId;
   final String name;
   final MuscleGroup primaryMuscle;
+  final List<MuscleGroup> secondaryMuscles;
   final ProgramExercise config;
   final Recommendation recommendation;
   final ExerciseSessionPerformance? lastPerformance;
@@ -127,6 +129,7 @@ class OverviewExercise extends Equatable {
     exerciseId,
     name,
     primaryMuscle,
+    secondaryMuscles,
     config,
     recommendation,
     lastPerformance,
@@ -149,6 +152,33 @@ class WorkoutOverview extends Equatable {
   final Map<MuscleGroup, int> plannedVolume;
   final bool isInProgress;
   final DateTime? lastCompletedAt;
+
+  /// Same workout with the exercise list in a new order.
+  WorkoutOverview withExercises(List<OverviewExercise> exercises) =>
+      WorkoutOverview(
+        day: day,
+        exercises: exercises,
+        totalSets: totalSets,
+        plannedVolume: plannedVolume,
+        isInProgress: isInProgress,
+        lastCompletedAt: lastCompletedAt,
+      );
+
+  /// Muscles the workout mainly trains, most sets first.
+  List<MuscleGroup> get targetMuscles =>
+      (plannedVolume.entries.toList()..sort((a, b) => b.value - a.value))
+          .map((e) => e.key)
+          .toList();
+
+  /// Muscles that assist but are not a main target of any exercise.
+  List<MuscleGroup> get assistingMuscles {
+    final main = plannedVolume.keys.toSet();
+    return {
+      for (final e in exercises)
+        for (final m in e.secondaryMuscles)
+          if (!main.contains(m)) m,
+    }.toList();
+  }
 
   @override
   List<Object?> get props => [

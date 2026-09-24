@@ -1,4 +1,5 @@
 import '../../../../core/domain/entities/enums.dart';
+import '../../../../core/domain/entities/program.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/result/api_result.dart';
 import '../../../../core/storage/hive_storage.dart';
@@ -42,8 +43,58 @@ class ProgramRepositoryImpl implements ProgramRepository {
   }
 
   @override
-  Stream<ApiResult<WorkoutDayData>> watchWorkoutDay(String dayId) =>
-      guardStream(watchTriggers(_triggers, () => _loadDay(dayId)));
+  Stream<ApiResult<WorkoutDayData>> watchWorkoutDay(
+    String dayId, {
+    bool withHistory = true,
+  }) => withHistory
+      ? guardStream(watchTriggers(_triggers, () => _loadDay(dayId)))
+      // Only plan changes matter here; logging sets doesn't rebuild it.
+      : guardStream(
+          watchTriggers(_programs.triggers, () => _loadPlanDay(dayId)),
+        );
+
+  /// The day and its exercises without scanning workout history.
+  WorkoutDayData _loadPlanDay(String dayId) => WorkoutDayData(
+    day: _programs.requireDay(dayId),
+    items: [
+      for (final config in _programs.programExercisesForDay(dayId))
+        (
+          config: config,
+          exercise:
+              _programs.exercise(config.exerciseId) ??
+              (throw NotFoundException('Exercise ${config.exerciseId}')),
+          history: const [],
+        ),
+    ],
+  );
+
+  @override
+  Future<ApiResult<WorkoutDay>> getDay(String dayId) =>
+      guardStorage(() => _programs.requireDay(dayId));
+
+  @override
+  Future<ApiResult<Exercise>> getExercise(String exerciseId) =>
+      guardStorage(() => _programs.requireExercise(exerciseId));
+
+  @override
+  Future<ApiResult<int>> exerciseCount(String dayId) =>
+      guardStorage(() => _programs.programExercisesForDay(dayId).length);
+
+  @override
+  Future<VoidResult> saveDay(WorkoutDay day) =>
+      guardStorage(() => _programs.saveWorkoutDay(day));
+
+  @override
+  Future<VoidResult> saveDayExercise(ProgramExercise entry) =>
+      guardStorage(() => _programs.saveProgramExercise(entry));
+
+  @override
+  Future<VoidResult> removeDayExercise(String entryId) =>
+      guardStorage(() => _programs.removeProgramExercise(entryId));
+
+  @override
+  Future<VoidResult> reorderDayExercises(String dayId, List<String> entryIds) =>
+      guardStorage(() => _programs.reorderProgramExercises(dayId, entryIds));
 
   WorkoutDayData _loadDay(String dayId) {
     final day = _programs.requireDay(dayId);

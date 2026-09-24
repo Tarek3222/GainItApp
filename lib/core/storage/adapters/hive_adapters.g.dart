@@ -190,13 +190,17 @@ class ExerciseAdapter extends TypeAdapter<Exercise> {
           ? const []
           : (fields[3] as List).cast<MuscleGroup>(),
       isCustom: fields[5] == null ? false : fields[5] as bool,
+      instructions: fields[7] as String?,
+      imagePath: fields[8] as String?,
+      videoPath: fields[9] as String?,
+      isArchived: fields[10] == null ? false : fields[10] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, Exercise obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -210,7 +214,15 @@ class ExerciseAdapter extends TypeAdapter<Exercise> {
       ..writeByte(5)
       ..write(obj.isCustom)
       ..writeByte(6)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..writeByte(7)
+      ..write(obj.instructions)
+      ..writeByte(8)
+      ..write(obj.imagePath)
+      ..writeByte(9)
+      ..write(obj.videoPath)
+      ..writeByte(10)
+      ..write(obj.isArchived);
   }
 
   @override

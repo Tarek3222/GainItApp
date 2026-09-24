@@ -23,6 +23,7 @@ dependencies:
   uuid: ^4.6.0
   image_picker: ^1.2.3
   path_provider: ^2.1.6
+  video_player: ^2.14.0
 
 dev_dependencies:
   bloc_test: ^10.0.0
@@ -37,6 +38,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/exercise_guides/
   fonts:
     - family: Poppins
       fonts:

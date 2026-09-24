@@ -5,6 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../core/di/injection.dart';
 import '../../features/body_weight/presentation/cubits/body_weight_cubit.dart';
 import '../../features/body_weight/presentation/views/body_weight_view.dart';
+import '../../features/exercises/presentation/cubits/exercise_cubits.dart';
+import '../../features/exercises/presentation/views/exercise_detail_view.dart';
+import '../../features/exercises/presentation/views/exercise_editor_view.dart';
+import '../../features/exercises/presentation/views/exercise_library_view.dart';
 import '../../features/history/presentation/cubits/history_cubits.dart';
 import '../../features/history/presentation/views/history_view.dart';
 import '../../features/history/presentation/views/session_detail_view.dart';
@@ -14,9 +18,9 @@ import '../../features/onboarding/presentation/cubits/onboarding_cubit.dart';
 import '../../features/onboarding/presentation/views/onboarding_view.dart';
 import '../../features/program/presentation/cubits/plan_cubits.dart';
 import '../../features/program/presentation/views/plan_view.dart';
+import '../../features/program/presentation/views/workout_day_editor_view.dart';
 import '../../features/program/presentation/views/workout_overview_view.dart';
 import '../../features/progress/presentation/cubits/progress_cubits.dart';
-import '../../features/progress/presentation/views/exercise_progress_view.dart';
 import '../../features/progress/presentation/views/progress_view.dart';
 import '../../features/settings/presentation/cubits/settings_cubit.dart';
 import '../../features/settings/presentation/views/settings_view.dart';
@@ -84,6 +88,17 @@ GoRouter createRouter({String initialLocation = RoutePaths.splash}) {
                       )..start(),
                       child: const WorkoutOverviewView(),
                     ),
+                    routes: [
+                      GoRoute(
+                        path: 'edit',
+                        builder: (_, state) => BlocProvider(
+                          create: (_) => getIt<WorkoutDayEditorCubit>(
+                            param1: state.pathParameters['dayId'],
+                          )..start(),
+                          child: const WorkoutDayEditorView(),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -159,13 +174,57 @@ GoRouter createRouter({String initialLocation = RoutePaths.splash}) {
         ],
       ),
       GoRoute(
-        path: '/exercises/:exerciseId',
+        path: RoutePaths.exercises,
         builder: (_, state) => BlocProvider(
-          create: (_) => getIt<ExerciseProgressCubit>(
-            param1: state.pathParameters['exerciseId'],
-          )..load(),
-          child: const ExerciseProgressView(),
+          create: (_) => getIt<ExerciseLibraryCubit>()..start(),
+          child: ExerciseLibraryView(
+            pickMode: state.uri.queryParameters['pick'] == 'true',
+            alreadyAdded: {
+              ...?state.uri.queryParameters['exclude']
+                  ?.split(',')
+                  .where((id) => id.isNotEmpty),
+            },
+          ),
         ),
+        routes: [
+          // Declared before the ID route so "new" is never read as an ID.
+          GoRoute(
+            path: 'new',
+            builder: (_, _) => BlocProvider(
+              create: (_) => getIt<ExerciseEditorCubit>(param1: null)..load(),
+              child: const ExerciseEditorView(),
+            ),
+          ),
+          GoRoute(
+            path: ':exerciseId',
+            builder: (_, state) => MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                  create: (_) => getIt<ExerciseDetailsCubit>(
+                    param1: state.pathParameters['exerciseId'],
+                  )..start(),
+                ),
+                BlocProvider(
+                  create: (_) => getIt<ExerciseProgressCubit>(
+                    param1: state.pathParameters['exerciseId'],
+                  )..load(),
+                ),
+              ],
+              child: const ExerciseDetailView(),
+            ),
+            routes: [
+              GoRoute(
+                path: 'edit',
+                builder: (_, state) => BlocProvider(
+                  create: (_) => getIt<ExerciseEditorCubit>(
+                    param1: state.pathParameters['exerciseId'],
+                  )..load(),
+                  child: const ExerciseEditorView(),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       GoRoute(
         path: RoutePaths.bodyWeight,

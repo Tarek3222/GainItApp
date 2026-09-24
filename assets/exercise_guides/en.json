@@ -1,0 +1,822 @@
+{
+  "references": {
+    "schoenfeld2017_volume": "Schoenfeld BJ, Ogborn D, Krieger JW (2017). Dose-response relationship between weekly resistance training volume and increases in muscle mass: a systematic review and meta-analysis. Journal of Sports Sciences.",
+    "schoenfeld2021_loading": "Schoenfeld BJ, Grgic J, Van Every DW, Plotkin DL (2021). Loading recommendations for muscle strength, hypertrophy, and local endurance: a re-examination of the repetition continuum. Sports.",
+    "refalo2023_failure": "Refalo MC, Helms ER, Trexler ET, Hamilton DL, Fyfe JJ (2023). Influence of resistance training proximity-to-failure on skeletal muscle hypertrophy: a systematic review with meta-analysis. Sports Medicine.",
+    "schoenfeld2016_rest": "Schoenfeld BJ, Pope ZK, Benik FM, et al. (2016). Longer interset rest periods enhance muscle strength and hypertrophy in resistance-trained men. Journal of Strength and Conditioning Research.",
+    "schoenfeld2015_tempo": "Schoenfeld BJ, Ogborn DI, Krieger JW (2015). Effect of repetition duration during resistance training on muscle hypertrophy: a systematic review and meta-analysis. Sports Medicine.",
+    "maeo2021_hamstrings": "Maeo S, Huang M, Wu Y, et al. (2021). Greater hamstrings muscle hypertrophy but similar damage protection after training at long versus short muscle lengths. Medicine & Science in Sports & Exercise.",
+    "maeo2023_triceps": "Maeo S, Wu Y, Huang M, et al. (2023). Triceps brachii hypertrophy is substantially greater after elbow extension training performed in the overhead versus neutral arm position. European Journal of Sport Science.",
+    "pedrosa2022_partials": "Pedrosa GF, Lima FV, Schoenfeld BJ, et al. (2022). Partial range of motion training elicits favorable improvements in muscular adaptations when carried out at long muscle lengths. European Journal of Sport Science.",
+    "kassiano2023_calves": "Kassiano W, Costa B, Nunes JP, et al. (2023). Greater gastrocnemius muscle hypertrophy after partial range of motion training performed at long muscle lengths. Journal of Strength and Conditioning Research.",
+    "kubo2019_squat": "Kubo K, Ikebukuro T, Yata H (2019). Effects of squat training with different depths on lower limb muscle volumes. European Journal of Applied Physiology.",
+    "wolf2023_rom": "Wolf M, Androulakis-Korakakis P, Fisher J, Schoenfeld B, Steele J (2023). Partial vs full range of motion resistance training: a systematic review and meta-analysis. International Journal of Strength and Conditioning.",
+    "rodriguezridao2020_incline": "Rodríguez-Ridao D, Antequera-Vique JA, Martín-Fuentes I, Muyor JM (2020). Effect of five bench inclinations on the electromyographic activity of the pectoralis major, anterior deltoid, and triceps brachii during the bench press exercise. International Journal of Environmental Research and Public Health.",
+    "robbins2010_supersets": "Robbins DW, Young WB, Behm DG, Payne WR (2010). Agonist-antagonist paired set resistance training: a brief review. Journal of Strength and Conditioning Research.",
+    "plotkin2022_progression": "Plotkin D, Coleman M, Van Every D, et al. (2022). Progressive overload without progressing load? The effects of load or repetition progression on muscular adaptations. PeerJ."
+  },
+  "exercises": {
+    "ex_flat_barbell_bench": {
+      "name": "Flat Barbell Bench Press",
+      "setup": [
+        "Lie with your eyes under the bar and feet flat on the floor.",
+        "Squeeze your shoulder blades together and down, keeping a small natural arch.",
+        "Grip slightly wider than shoulder width so your forearms are vertical at the bottom."
+      ],
+      "execution": [
+        "Lower the bar under control to your mid-chest, elbows about 45–70° from your body.",
+        "Touch the chest lightly without bouncing, then press up and slightly back toward your face.",
+        "Keep your glutes and shoulder blades on the bench the whole set."
+      ],
+      "tips": [
+        "Take about 2 seconds on the way down, then press with intent.",
+        "Stop most sets with 1–3 reps left in the tank; keep the last set close to failure."
+      ],
+      "mistakes": [
+        "Bouncing the bar off the chest.",
+        "Flaring the elbows straight out to 90°.",
+        "Lifting the hips off the bench to finish a rep."
+      ],
+      "evidence": [
+        {
+          "finding": "Muscle growth is similar across a wide range of loads when sets are taken close to failure, so the 6–10 rep range is a practical choice rather than a requirement.",
+          "ref": "schoenfeld2021_loading"
+        },
+        {
+          "finding": "Resting about 3 minutes instead of 1 gave more strength and more thigh growth in trained men, so give heavy multi-joint sets enough rest.",
+          "ref": "schoenfeld2016_rest"
+        }
+      ]
+    },
+    "ex_wide_barbell_row": {
+      "name": "Wide Barbell Row",
+      "setup": [
+        "Hinge at the hips until your torso is roughly 30–45° above the floor, knees slightly bent.",
+        "Take a grip wider than shoulder width, arms hanging straight.",
+        "Brace your core and keep a neutral spine."
+      ],
+      "execution": [
+        "Pull the bar toward your lower chest, driving your elbows out and back.",
+        "Squeeze your upper back for a moment at the top.",
+        "Lower until your arms are fully straight and your shoulder blades spread apart."
+      ],
+      "tips": [
+        "Use the full range: a full stretch at the bottom and a full squeeze at the top.",
+        "Keep the torso angle fixed; if you have to heave, the weight is too heavy."
+      ],
+      "mistakes": [
+        "Standing more upright with every rep.",
+        "Rounding the lower back.",
+        "Cutting the range short at the bottom."
+      ],
+      "evidence": [
+        {
+          "finding": "Across studies, full and partial range of motion built similar muscle overall, and partial reps did best in the stretched position, so don't cut the stretch short.",
+          "ref": "wolf2023_rom"
+        },
+        {
+          "finding": "Resting about 3 minutes instead of 1 gave more strength and more thigh growth in trained men, so give heavy multi-joint sets enough rest.",
+          "ref": "schoenfeld2016_rest"
+        }
+      ]
+    },
+    "ex_incline_bench_press": {
+      "name": "Incline Bench Press",
+      "setup": [
+        "Set the bench to about 30°.",
+        "Retract your shoulder blades and plant your feet.",
+        "Grip slightly wider than shoulder width."
+      ],
+      "execution": [
+        "Lower the bar under control to your upper chest, just below the collarbones.",
+        "Press up in a slight arc back over your shoulders.",
+        "Keep your chest up and shoulder blades pinned throughout."
+      ],
+      "tips": [
+        "Around 30° gives the most upper-chest activation (measured by EMG); much steeper angles shift the work to the front delts.",
+        "Control the lowering phase and pause briefly without bouncing."
+      ],
+      "mistakes": [
+        "Using a very steep bench (45° or more) and turning it into a shoulder press.",
+        "Letting the shoulders roll forward at the bottom."
+      ],
+      "evidence": [
+        {
+          "finding": "In an EMG study of five bench angles, upper-chest activity peaked at about 30°, while higher inclines increased front-delt involvement.",
+          "ref": "rodriguezridao2020_incline"
+        },
+        {
+          "finding": "Both moderate and lighter loads build muscle when sets are hard, so pick a load you can control for the full rep range.",
+          "ref": "schoenfeld2021_loading"
+        }
+      ]
+    },
+    "ex_lat_pulldown": {
+      "name": "Lat Pulldown",
+      "setup": [
+        "Adjust the thigh pad so you're locked in.",
+        "Grip the bar a little wider than your shoulders.",
+        "Lean back slightly with your chest up."
+      ],
+      "execution": [
+        "Pull your elbows down toward your sides and bring the bar to your upper chest.",
+        "Pause briefly with your shoulder blades pulled down.",
+        "Let the bar rise until your arms are straight and your lats are fully stretched."
+      ],
+      "tips": [
+        "Think 'elbows to hips' rather than pulling with your hands.",
+        "Get a full stretch at the top of every rep."
+      ],
+      "mistakes": [
+        "Leaning far back and turning it into a row.",
+        "Pulling the bar behind the neck.",
+        "Letting the weight stack slam between reps."
+      ],
+      "evidence": [
+        {
+          "finding": "Across studies, full and partial range of motion built similar muscle overall, and partial reps did best in the stretched position, so don't cut the stretch short.",
+          "ref": "wolf2023_rom"
+        },
+        {
+          "finding": "Training to complete failure wasn't clearly better than stopping a rep or two short, so finish sets hard (about 0–3 reps in reserve) without grinding to failure every time.",
+          "ref": "refalo2023_failure"
+        }
+      ]
+    },
+    "ex_pec_fly": {
+      "name": "Pec Fly",
+      "setup": [
+        "Set the seat so the handles are at chest height.",
+        "Keep a slight bend in your elbows.",
+        "Sit tall with your shoulder blades back against the pad."
+      ],
+      "execution": [
+        "Bring the handles together in a wide arc, squeezing your chest.",
+        "Return slowly until you feel a deep stretch across the chest.",
+        "Keep the elbow angle the same from start to finish."
+      ],
+      "tips": [
+        "The stretched position is the most valuable part; control it.",
+        "Isolation work tolerates taking sets very close to failure."
+      ],
+      "mistakes": [
+        "Bending and straightening the elbows (turning it into a press).",
+        "Letting the shoulders roll forward as the handles meet."
+      ],
+      "evidence": [
+        {
+          "finding": "Across studies, full and partial range of motion built similar muscle overall, and partial reps did best in the stretched position, so don't cut the stretch short.",
+          "ref": "wolf2023_rom"
+        },
+        {
+          "finding": "Training to complete failure wasn't clearly better than stopping a rep or two short, so finish sets hard (about 0–3 reps in reserve) without grinding to failure every time.",
+          "ref": "refalo2023_failure"
+        }
+      ]
+    },
+    "ex_seated_cable_row": {
+      "name": "Seated Cable Row",
+      "setup": [
+        "Sit with your feet on the platform and knees slightly bent.",
+        "Hold the handle with straight arms and a tall chest."
+      ],
+      "execution": [
+        "Row the handle to your lower ribs, driving your elbows back.",
+        "Squeeze your shoulder blades together.",
+        "Reach forward slowly until your back muscles are stretched, without rounding your lower back."
+      ],
+      "tips": [
+        "A controlled 2–3 second return keeps tension on the back.",
+        "Keep your torso mostly still; a small lean is fine."
+      ],
+      "mistakes": [
+        "Rocking the torso back and forth to move the weight.",
+        "Shrugging the shoulders up toward the ears."
+      ],
+      "evidence": [
+        {
+          "finding": "Across studies, full and partial range of motion built similar muscle overall, and partial reps did best in the stretched position, so don't cut the stretch short.",
+          "ref": "wolf2023_rom"
+        },
+        {
+          "finding": "Rep speeds from about half a second to 8 seconds produced similar growth, so move with control without going excessively slow.",
+          "ref": "schoenfeld2015_tempo"
+        }
+      ]
+    },
+    "ex_dumbbell_shrug": {
+      "name": "Dumbbell Shrugs",
+      "setup": [
+        "Stand tall holding a dumbbell in each hand at your sides.",
+        "Keep your arms straight and relaxed."
+      ],
+      "execution": [
+        "Lift your shoulders straight up toward your ears.",
+        "Hold the top for a moment.",
+        "Lower slowly until your traps are fully stretched."
+      ],
+      "tips": [
+        "Straight up and down; rolling the shoulders adds nothing.",
+        "Straps are fine if your grip gives out before your traps."
+      ],
+      "mistakes": [
+        "Bending the elbows to help lift the weight.",
+        "Using a tiny range of motion with too much weight."
+      ],
+      "evidence": [
+        {
+          "finding": "More weekly sets per muscle were associated with more growth, so direct trap work adds to what you get from rows.",
+          "ref": "schoenfeld2017_volume"
+        },
+        {
+          "finding": "A wide range of rep speeds works for growth; a controlled pause at the top simply helps you use the full range.",
+          "ref": "schoenfeld2015_tempo"
+        }
+      ]
+    },
+    "ex_squat": {
+      "name": "Squat / Hack Squat",
+      "setup": [
+        "Stand with feet about shoulder width apart, toes slightly out (on a hack squat, feet mid-platform).",
+        "Brace your core before every rep.",
+        "Keep your chest up and your back against the pad on a machine."
+      ],
+      "execution": [
+        "Sit down between your hips, knees tracking over your toes.",
+        "Go as deep as you can with a neutral spine, ideally thighs past parallel.",
+        "Drive up through your whole foot."
+      ],
+      "tips": [
+        "Depth matters: deeper squats grow the glutes and inner thighs more.",
+        "Rest fully between heavy sets so you can keep your reps and form."
+      ],
+      "mistakes": [
+        "Knees caving inward.",
+        "Cutting depth as the weight gets heavier.",
+        "Lifting the heels."
+      ],
+      "evidence": [
+        {
+          "finding": "Full-depth squats increased glute and adductor muscle volume more than half squats, with similar quadriceps gains.",
+          "ref": "kubo2019_squat"
+        },
+        {
+          "finding": "Resting about 3 minutes instead of 1 gave more strength and more thigh growth in trained men, so give heavy multi-joint sets enough rest.",
+          "ref": "schoenfeld2016_rest"
+        }
+      ]
+    },
+    "ex_lying_leg_curl": {
+      "name": "Lying Leg Curl",
+      "setup": [
+        "Lie face down with the pad just above your heels.",
+        "Line your knees up with the machine's pivot point.",
+        "Hold the handles and keep your hips pressed down."
+      ],
+      "execution": [
+        "Curl your heels toward your glutes.",
+        "Squeeze at the top, then lower slowly until your legs are straight."
+      ],
+      "tips": [
+        "If your gym has a seated leg curl, consider it: the hamstrings work at a longer length there.",
+        "Keep your hips down; lifting them shortens the range."
+      ],
+      "mistakes": [
+        "Lifting the hips off the pad.",
+        "Letting the weight drop on the way down."
+      ],
+      "evidence": [
+        {
+          "finding": "Seated leg curls (hips flexed, hamstrings lengthened) built more hamstring muscle than lying leg curls over 12 weeks.",
+          "ref": "maeo2021_hamstrings"
+        },
+        {
+          "finding": "Training to complete failure wasn't clearly better than stopping a rep or two short, so finish sets hard (about 0–3 reps in reserve) without grinding to failure every time.",
+          "ref": "refalo2023_failure"
+        }
+      ]
+    },
+    "ex_leg_press": {
+      "name": "Leg Press",
+      "setup": [
+        "Sit with your back and hips flat against the pad.",
+        "Place your feet shoulder width apart in the middle of the platform."
+      ],
+      "execution": [
+        "Lower the platform until your knees are deeply bent, without your lower back lifting off the seat.",
+        "Press back up through your whole foot, stopping just short of locking out."
+      ],
+      "tips": [
+        "Go as deep as your hips and back allow; depth adds glute work.",
+        "Add a rep before adding weight: both drive progress."
+      ],
+      "mistakes": [
+        "Letting the lower back round off the pad at the bottom.",
+        "Very short reps with heavy weight.",
+        "Snapping the knees into lockout."
+      ],
+      "evidence": [
+        {
+          "finding": "Full-depth squats grew the glutes and inner thighs more than half squats. The leg press wasn't tested, but a deep range is a reasonable application of the same idea.",
+          "ref": "kubo2019_squat"
+        },
+        {
+          "finding": "Progressing by adding reps produced similar muscle growth to progressing by adding load.",
+          "ref": "plotkin2022_progression"
+        }
+      ]
+    },
+    "ex_back_extension_45": {
+      "name": "45° Back Extension",
+      "setup": [
+        "Set the pad just below your hip crease so you can hinge freely.",
+        "Cross your arms over your chest or hold a plate."
+      ],
+      "execution": [
+        "Hinge down at the hips with a neutral spine until you feel your hamstrings stretch.",
+        "Drive your hips into the pad and come up until your body is in a straight line.",
+        "Squeeze your glutes at the top; don't arch past straight."
+      ],
+      "tips": [
+        "Move with control; the stretch at the bottom is where the hamstrings work hardest.",
+        "Add a light weight once bodyweight reps get easy."
+      ],
+      "mistakes": [
+        "Hyperextending the lower back at the top.",
+        "Swinging up with momentum."
+      ],
+      "evidence": [
+        {
+          "finding": "Controlled reps across a broad range of speeds produce similar growth, so there's no need to rush.",
+          "ref": "schoenfeld2015_tempo"
+        },
+        {
+          "finding": "Training to complete failure wasn't clearly better than stopping a rep or two short, so finish sets hard (about 0–3 reps in reserve) without grinding to failure every time.",
+          "ref": "refalo2023_failure"
+        }
+      ]
+    },
+    "ex_leg_extension": {
+      "name": "Leg Extension",
+      "setup": [
+        "Line your knees up with the machine's pivot point.",
+        "Set the pad on your lower shins and the back pad so your hips sit deep in the seat."
+      ],
+      "execution": [
+        "Extend your knees until your legs are straight and squeeze your quads.",
+        "Lower slowly all the way until the weight almost touches the stack."
+      ],
+      "tips": [
+        "The deeply bent (stretched) part of the rep matters most; don't skip it.",
+        "When you can't do full reps anymore, a few partials in the bottom half keep the set productive."
+      ],
+      "mistakes": [
+        "Only doing the top half of the movement.",
+        "Kicking the weight up with momentum."
+      ],
+      "evidence": [
+        {
+          "finding": "Leg extensions trained in the lengthened (knee-bent) half of the range grew the quads as much as or more than full reps, and more than the shortened half.",
+          "ref": "pedrosa2022_partials"
+        },
+        {
+          "finding": "Training to complete failure wasn't clearly better than stopping a rep or two short, so finish sets hard (about 0–3 reps in reserve) without grinding to failure every time.",
+          "ref": "refalo2023_failure"
+        }
+      ]
+    },
+    "ex_standing_calf_raise": {
+      "name": "Standing Calf Raise",
+      "setup": [
+        "Stand with the balls of your feet on the edge of the platform.",
+        "Keep your knees straight but not locked."
+      ],
+      "execution": [
+        "Lower your heels as far as possible and pause briefly in the stretch.",
+        "Rise onto your toes as high as you can."
+      ],
+      "tips": [
+        "Prioritise the stretched bottom position; a 1–2 second pause removes the bounce.",
+        "Push sets hard, about 0–3 reps short of failure."
+      ],
+      "mistakes": [
+        "Bouncing out of the bottom.",
+        "Short, fast reps in the middle of the range."
+      ],
+      "evidence": [
+        {
+          "finding": "Calf raises done in the lengthened (heel-down) part of the range grew the calves more than full or top-range reps.",
+          "ref": "kassiano2023_calves"
+        },
+        {
+          "finding": "Across studies, full and partial range of motion built similar muscle overall, and partial reps did best in the stretched position, so don't cut the stretch short.",
+          "ref": "wolf2023_rom"
+        }
+      ]
+    },
+    "ex_flat_dumbbell_bench": {
+      "name": "Flat Dumbbell Bench Press",
+      "setup": [
+        "Sit with the dumbbells on your thighs, then lie back and bring them to your chest.",
+        "Retract your shoulder blades and plant your feet."
+      ],
+      "execution": [
+        "Lower the dumbbells to the sides of your chest until you feel a stretch.",
+        "Press up and slightly together without clanking them at the top."
+      ],
+      "tips": [
+        "Dumbbells let you go a little deeper than a barbell; use that stretch.",
+        "Keep your wrists stacked over your elbows."
+      ],
+      "mistakes": [
+        "Stopping short at the bottom.",
+        "Letting the elbows flare to 90°."
+      ],
+      "evidence": [
+        {
+          "finding": "Hard sets build muscle across a wide range of loads, so you don't need maximal weights: a load you control for 6–10 reps works.",
+          "ref": "schoenfeld2021_loading"
+        },
+        {
+          "finding": "Across studies, full and partial range of motion built similar muscle overall, and partial reps did best in the stretched position, so don't cut the stretch short.",
+          "ref": "wolf2023_rom"
+        }
+      ]
+    },
+    "ex_high_cable_pulldown": {
+      "name": "High Cable Pulldown",
+      "setup": [
+        "Set a cable high and kneel or stand facing it.",
+        "Hold the handle with your arms extended overhead."
+      ],
+      "execution": [
+        "Pull your elbow down toward your hip, keeping your chest up.",
+        "Control the return until your lat is fully stretched overhead."
+      ],
+      "tips": [
+        "Single-arm versions let you get a bigger stretch at the top.",
+        "Lead with the elbow, not the hand."
+      ],
+      "mistakes": [
+        "Leaning over to shorten the range.",
+        "Turning it into a biceps curl."
+      ],
+      "evidence": [
+        {
+          "finding": "Across studies, full and partial range of motion built similar muscle overall, and partial reps did best in the stretched position, so don't cut the stretch short.",
+          "ref": "wolf2023_rom"
+        },
+        {
+          "finding": "More weekly sets per muscle were associated with more growth; a second vertical pull adds back volume.",
+          "ref": "schoenfeld2017_volume"
+        }
+      ]
+    },
+    "ex_cable_fly": {
+      "name": "Cable Fly",
+      "setup": [
+        "Set both pulleys around shoulder height and take a split stance.",
+        "Keep a soft bend in your elbows."
+      ],
+      "execution": [
+        "Sweep your hands together in front of your chest.",
+        "Return slowly until your chest is stretched and your arms are in line with your body."
+      ],
+      "tips": [
+        "Cables keep tension in the stretched position; control it.",
+        "Keep the elbow angle fixed."
+      ],
+      "mistakes": [
+        "Pressing instead of flying.",
+        "Going heavy and shortening the stretch."
+      ],
+      "evidence": [
+        {
+          "finding": "Across studies, full and partial range of motion built similar muscle overall, and partial reps did best in the stretched position, so don't cut the stretch short.",
+          "ref": "wolf2023_rom"
+        },
+        {
+          "finding": "Training to complete failure wasn't clearly better than stopping a rep or two short, so finish sets hard (about 0–3 reps in reserve) without grinding to failure every time.",
+          "ref": "refalo2023_failure"
+        }
+      ]
+    },
+    "ex_row_width": {
+      "name": "Row / Width Exercise",
+      "setup": [
+        "Choose a row variation (cable, machine or chest-supported) with a wide grip.",
+        "Set up so your arms can fully straighten."
+      ],
+      "execution": [
+        "Pull with your elbows out at roughly 45–60° to target the upper back and rear delts.",
+        "Squeeze your shoulder blades together, then reach forward to a full stretch."
+      ],
+      "tips": [
+        "Chest-supported rows remove body swing so the back does the work.",
+        "Rest enough between sets to keep your reps up."
+      ],
+      "mistakes": [
+        "Shrugging instead of retracting.",
+        "Partial reps with too much weight."
+      ],
+      "evidence": [
+        {
+          "finding": "Across studies, full and partial range of motion built similar muscle overall, and partial reps did best in the stretched position, so don't cut the stretch short.",
+          "ref": "wolf2023_rom"
+        },
+        {
+          "finding": "Resting about 3 minutes instead of 1 gave more strength and more thigh growth in trained men, so give heavy multi-joint sets enough rest.",
+          "ref": "schoenfeld2016_rest"
+        }
+      ]
+    },
+    "ex_cable_lateral_raise": {
+      "name": "Cable Lateral Raise",
+      "setup": [
+        "Stand side-on to a low cable and hold the handle with the far hand.",
+        "Keep a slight bend in the elbow and a tall posture."
+      ],
+      "execution": [
+        "Raise your arm out to the side until it's about shoulder height.",
+        "Lower slowly, letting the cable pull your arm slightly across your body."
+      ],
+      "tips": [
+        "The cable keeps tension at the bottom, where dumbbells go slack.",
+        "Light weights are fine; the side delts respond to hard sets, not heavy loads."
+      ],
+      "mistakes": [
+        "Shrugging the weight up with the traps.",
+        "Swinging the body."
+      ],
+      "evidence": [
+        {
+          "finding": "More weekly sets per muscle were associated with more growth; side delts get little work from pressing, so direct sets count.",
+          "ref": "schoenfeld2017_volume"
+        },
+        {
+          "finding": "Training to complete failure wasn't clearly better than stopping a rep or two short, so finish sets hard (about 0–3 reps in reserve) without grinding to failure every time.",
+          "ref": "refalo2023_failure"
+        }
+      ]
+    },
+    "ex_wrist_curl": {
+      "name": "Wrist Curl",
+      "setup": [
+        "Sit with your forearms on your thighs or a bench, palms up, wrists just past the edge."
+      ],
+      "execution": [
+        "Let the weight roll down toward your fingertips for a full stretch.",
+        "Curl your wrists up as high as you can, then lower slowly."
+      ],
+      "tips": [
+        "Use the full range, finger roll included.",
+        "Higher reps (12–20) work well for forearms."
+      ],
+      "mistakes": [
+        "Lifting the forearms off the support.",
+        "Tiny, fast reps."
+      ],
+      "evidence": [
+        {
+          "finding": "Across studies, full and partial range of motion built similar muscle overall, and partial reps did best in the stretched position, so don't cut the stretch short.",
+          "ref": "wolf2023_rom"
+        },
+        {
+          "finding": "More weekly sets per muscle were associated with more growth.",
+          "ref": "schoenfeld2017_volume"
+        }
+      ]
+    },
+    "ex_reverse_wrist_curl": {
+      "name": "Reverse Wrist Curl",
+      "setup": [
+        "Rest your forearms on your thighs or a bench, palms down."
+      ],
+      "execution": [
+        "Lift the backs of your hands toward you as far as possible.",
+        "Lower slowly into a full stretch."
+      ],
+      "tips": [
+        "Use a light weight; the wrist extensors are small muscles.",
+        "Control both directions."
+      ],
+      "mistakes": [
+        "Using the arms or body to move the weight.",
+        "Going too heavy and shortening the range."
+      ],
+      "evidence": [
+        {
+          "finding": "More weekly sets per muscle were associated with more growth.",
+          "ref": "schoenfeld2017_volume"
+        },
+        {
+          "finding": "A wide range of rep speeds produced similar growth, so a steady, controlled pace is enough.",
+          "ref": "schoenfeld2015_tempo"
+        }
+      ]
+    },
+    "ex_dumbbell_lateral_raise": {
+      "name": "Dumbbell Lateral Raise",
+      "setup": [
+        "Stand tall with a dumbbell in each hand at your sides, elbows slightly bent.",
+        "Lean forward slightly."
+      ],
+      "execution": [
+        "Raise the dumbbells out to the sides, leading with your elbows, to about shoulder height.",
+        "Lower slowly under control."
+      ],
+      "tips": [
+        "Imagine pushing the dumbbells out to the walls rather than up.",
+        "Light weights and higher reps are effective when sets are hard."
+      ],
+      "mistakes": [
+        "Swinging the weights up.",
+        "Shrugging the shoulders.",
+        "Raising far above shoulder height with momentum."
+      ],
+      "evidence": [
+        {
+          "finding": "Light and heavy loads build similar muscle when sets are taken close to failure, so light lateral raises are enough.",
+          "ref": "schoenfeld2021_loading"
+        },
+        {
+          "finding": "Training to complete failure wasn't clearly better than stopping a rep or two short, so finish sets hard (about 0–3 reps in reserve) without grinding to failure every time.",
+          "ref": "refalo2023_failure"
+        }
+      ]
+    },
+    "ex_cable_rear_delt_rope": {
+      "name": "Cable Rear-Delt Rope",
+      "setup": [
+        "Set a rope at face height and hold one end in each hand, palms facing down or in.",
+        "Step back so your arms are straight in front of you."
+      ],
+      "execution": [
+        "Pull the rope apart and back, driving your elbows out wide.",
+        "Finish with your hands beside your head, then return slowly."
+      ],
+      "tips": [
+        "Keep your elbows high and wide to hit the rear delts, not the lats.",
+        "Pause briefly when your arms are fully back."
+      ],
+      "mistakes": [
+        "Leaning back to move more weight.",
+        "Pulling the elbows down to your sides."
+      ],
+      "evidence": [
+        {
+          "finding": "Hard sets build muscle across a wide range of loads, so moderate weights you can control are effective.",
+          "ref": "schoenfeld2021_loading"
+        },
+        {
+          "finding": "More weekly sets per muscle were associated with more growth.",
+          "ref": "schoenfeld2017_volume"
+        }
+      ]
+    },
+    "ex_machine_front_raise": {
+      "name": "Machine Front Raise",
+      "setup": [
+        "Adjust the seat so the handles start near your thighs or hips.",
+        "Sit tall with your back against the pad."
+      ],
+      "execution": [
+        "Raise the handles in front of you to shoulder height.",
+        "Lower slowly to the start."
+      ],
+      "tips": [
+        "Front delts already work hard in pressing, so a few quality sets are enough.",
+        "Avoid leaning back to start the movement."
+      ],
+      "mistakes": [
+        "Arching the lower back.",
+        "Using momentum from the hips."
+      ],
+      "evidence": [
+        {
+          "finding": "Weekly set volume drives growth; count your pressing sets toward front-delt volume when planning.",
+          "ref": "schoenfeld2017_volume"
+        },
+        {
+          "finding": "Training to complete failure wasn't clearly better than stopping a rep or two short, so finish sets hard (about 0–3 reps in reserve) without grinding to failure every time.",
+          "ref": "refalo2023_failure"
+        }
+      ]
+    },
+    "ex_overhead_triceps_extension": {
+      "name": "Overhead Triceps Extension",
+      "setup": [
+        "Face away from a cable (or hold a dumbbell overhead) with your elbows pointing up.",
+        "Brace your core so your lower back doesn't arch."
+      ],
+      "execution": [
+        "Lower the weight behind your head until your triceps are deeply stretched.",
+        "Extend your elbows fully without moving your upper arms."
+      ],
+      "tips": [
+        "The overhead position stretches the long head of the triceps; prioritise depth.",
+        "Pairing it with a biceps exercise saves time without hurting performance."
+      ],
+      "mistakes": [
+        "Flaring the elbows wide.",
+        "Moving the upper arms to cheat the weight up."
+      ],
+      "evidence": [
+        {
+          "finding": "Overhead elbow extensions grew the triceps substantially more than the same exercise done with the arms down by the sides.",
+          "ref": "maeo2023_triceps"
+        },
+        {
+          "finding": "Pairing opposing muscles (e.g. triceps and biceps) in supersets maintained performance while saving time.",
+          "ref": "robbins2010_supersets"
+        }
+      ]
+    },
+    "ex_incline_dumbbell_curl": {
+      "name": "Incline Dumbbell Curl",
+      "setup": [
+        "Set a bench to about 45–60° and lie back with your arms hanging straight down.",
+        "Keep your shoulders back against the bench."
+      ],
+      "execution": [
+        "Curl the dumbbells up without moving your upper arms.",
+        "Lower slowly until your arms are fully straight and your biceps are stretched."
+      ],
+      "tips": [
+        "The incline puts the biceps on a stretch; that bottom position is the point of the exercise.",
+        "Supinate (turn your palms up) as you curl."
+      ],
+      "mistakes": [
+        "Bringing the elbows forward to shorten the range.",
+        "Stopping before the arms are straight."
+      ],
+      "evidence": [
+        {
+          "finding": "Across studies, full and partial range of motion built similar muscle overall, and partial reps did best in the stretched position, so don't cut the stretch short.",
+          "ref": "wolf2023_rom"
+        },
+        {
+          "finding": "Agonist-antagonist supersets (e.g. biceps with triceps) maintained performance while saving time.",
+          "ref": "robbins2010_supersets"
+        }
+      ]
+    },
+    "ex_straight_bar_pushdown": {
+      "name": "Straight-Bar Triceps Pushdown",
+      "setup": [
+        "Stand close to a high cable with a straight bar, elbows at your sides.",
+        "Lean forward slightly with your chest up."
+      ],
+      "execution": [
+        "Push the bar down until your elbows are fully straight.",
+        "Let it rise slowly until your forearms pass parallel, keeping your elbows pinned."
+      ],
+      "tips": [
+        "Pushdowns complement overhead work; the overhead version grows the triceps more, so keep both.",
+        "Squeeze hard at lockout."
+      ],
+      "mistakes": [
+        "Letting the elbows drift forward.",
+        "Using the body to push the weight down."
+      ],
+      "evidence": [
+        {
+          "finding": "Arms-down elbow extensions produced less triceps growth than overhead extensions, which is why this program pairs both.",
+          "ref": "maeo2023_triceps"
+        },
+        {
+          "finding": "Supersets of opposing muscles maintained performance while saving time.",
+          "ref": "robbins2010_supersets"
+        }
+      ]
+    },
+    "ex_hammer_curl": {
+      "name": "Hammer Curl",
+      "setup": [
+        "Stand with a dumbbell in each hand, palms facing your body."
+      ],
+      "execution": [
+        "Curl the dumbbells up with your palms staying neutral.",
+        "Lower slowly until your arms are straight."
+      ],
+      "tips": [
+        "The neutral grip adds work for the brachialis and forearms.",
+        "Keep your elbows at your sides."
+      ],
+      "mistakes": [
+        "Swinging the torso.",
+        "Cutting the range short at the bottom."
+      ],
+      "evidence": [
+        {
+          "finding": "Muscle growth is similar across a wide range of loads when sets are hard, so moderate dumbbells are effective.",
+          "ref": "schoenfeld2021_loading"
+        },
+        {
+          "finding": "Agonist-antagonist supersets maintained performance while saving time.",
+          "ref": "robbins2010_supersets"
+        }
+      ]
+    }
+  }
+}
