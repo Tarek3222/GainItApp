@@ -8,6 +8,7 @@ abstract final class RoutePaths {
   static const settings = '/settings';
   static const history = '/history';
   static const bodyWeight = '/body-weight';
+  static const dailyGoals = '/goals';
 
   static String planDay(String dayId) => '/plan/day/$dayId';
   static String workout(String sessionId) => '/workout/$sessionId';

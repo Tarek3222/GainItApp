@@ -14,6 +14,7 @@ import 'core/services/local_notification_service.dart';
 import 'core/storage/hive_storage.dart';
 import 'core/storage/storage_bootstrap.dart';
 import 'core/widgets/state_views.dart';
+import 'features/daily_goals/domain/usecases/daily_goal_use_cases.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,6 +43,9 @@ Future<void> main() async {
       notifications: notifications,
       media: media,
     );
+    // Goal reminders skip goals already reached today; refresh them on
+    // every launch. Failures are reported inside and never block startup.
+    unawaited(getIt<SyncGoalRemindersUseCase>()());
     runApp(GainItApp(router: createRouter()));
   } on Object catch (error, stackTrace) {
     FlutterError.reportError(

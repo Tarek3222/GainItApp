@@ -880,3 +880,163 @@ class UnitSystemAdapter extends TypeAdapter<UnitSystem> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
+
+class DailyGoalAdapter extends TypeAdapter<DailyGoal> {
+  @override
+  final typeId = 17;
+
+  @override
+  DailyGoal read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return DailyGoal(
+      id: fields[0] as String,
+      type: fields[1] as DailyGoalType,
+      target: (fields[2] as num).toDouble(),
+      sortOrder: (fields[3] as num).toInt(),
+      createdAt: fields[4] as DateTime,
+      title: fields[5] == null ? '' : fields[5] as String,
+      unit: fields[6] == null ? '' : fields[6] as String,
+      increment: fields[7] == null ? 1 : (fields[7] as num).toDouble(),
+      reminderEnabled: fields[8] == null ? false : fields[8] as bool,
+      reminderIntervalMinutes: fields[9] == null
+          ? 120
+          : (fields[9] as num).toInt(),
+      reminderStartMinutes: fields[10] == null
+          ? 9 * 60
+          : (fields[10] as num).toInt(),
+      reminderEndMinutes: fields[11] == null
+          ? 21 * 60
+          : (fields[11] as num).toInt(),
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, DailyGoal obj) {
+    writer
+      ..writeByte(12)
+      ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(1)
+      ..write(obj.type)
+      ..writeByte(2)
+      ..write(obj.target)
+      ..writeByte(3)
+      ..write(obj.sortOrder)
+      ..writeByte(4)
+      ..write(obj.createdAt)
+      ..writeByte(5)
+      ..write(obj.title)
+      ..writeByte(6)
+      ..write(obj.unit)
+      ..writeByte(7)
+      ..write(obj.increment)
+      ..writeByte(8)
+      ..write(obj.reminderEnabled)
+      ..writeByte(9)
+      ..write(obj.reminderIntervalMinutes)
+      ..writeByte(10)
+      ..write(obj.reminderStartMinutes)
+      ..writeByte(11)
+      ..write(obj.reminderEndMinutes);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DailyGoalAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class DailyGoalLogAdapter extends TypeAdapter<DailyGoalLog> {
+  @override
+  final typeId = 18;
+
+  @override
+  DailyGoalLog read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return DailyGoalLog(
+      id: fields[0] as String,
+      goalId: fields[1] as String,
+      dayKey: (fields[2] as num).toInt(),
+      amount: (fields[3] as num).toDouble(),
+      updatedAt: fields[4] as DateTime,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, DailyGoalLog obj) {
+    writer
+      ..writeByte(5)
+      ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(1)
+      ..write(obj.goalId)
+      ..writeByte(2)
+      ..write(obj.dayKey)
+      ..writeByte(3)
+      ..write(obj.amount)
+      ..writeByte(4)
+      ..write(obj.updatedAt);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DailyGoalLogAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class DailyGoalTypeAdapter extends TypeAdapter<DailyGoalType> {
+  @override
+  final typeId = 19;
+
+  @override
+  DailyGoalType read(BinaryReader reader) {
+    switch (reader.readByte()) {
+      case 0:
+        return DailyGoalType.water;
+      case 1:
+        return DailyGoalType.steps;
+      case 2:
+        return DailyGoalType.custom;
+      default:
+        return DailyGoalType.water;
+    }
+  }
+
+  @override
+  void write(BinaryWriter writer, DailyGoalType obj) {
+    switch (obj) {
+      case DailyGoalType.water:
+        writer.writeByte(0);
+      case DailyGoalType.steps:
+        writer.writeByte(1);
+      case DailyGoalType.custom:
+        writer.writeByte(2);
+    }
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DailyGoalTypeAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}

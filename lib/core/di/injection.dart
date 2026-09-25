@@ -5,6 +5,10 @@ import '../../features/body_weight/data/repositories/body_weight_repository_impl
 import '../../features/body_weight/domain/repositories/body_weight_repository.dart';
 import '../../features/body_weight/domain/usecases/body_weight_use_cases.dart';
 import '../../features/body_weight/presentation/cubits/body_weight_cubit.dart';
+import '../../features/daily_goals/data/repositories/daily_goal_repository_impl.dart';
+import '../../features/daily_goals/domain/repositories/daily_goal_repository.dart';
+import '../../features/daily_goals/domain/usecases/daily_goal_use_cases.dart';
+import '../../features/daily_goals/presentation/cubits/daily_goal_cubits.dart';
 import '../../features/exercises/data/repositories/exercise_guide_repository_impl.dart';
 import '../../features/exercises/data/repositories/exercise_repository_impl.dart';
 import '../../features/exercises/domain/repositories/exercise_guide_repository.dart';
@@ -56,13 +60,16 @@ import '../domain/repositories/unit_preference_repository.dart';
 import '../domain/services/day_change_source.dart';
 import '../domain/services/media_store.dart';
 import '../domain/services/notification_scheduler.dart';
+import '../domain/services/step_counter.dart';
 import '../domain/usecases/watch_unit_system_use_case.dart';
 import '../presentation/units/units_cubit.dart';
 import '../services/app_day_change_source.dart';
 import '../services/clock.dart';
 import '../services/id_generator.dart';
+import '../services/pedometer_step_counter.dart';
 import '../storage/hive_storage.dart';
 import '../storage/local_data_sources/body_weight_local_data_source.dart';
+import '../storage/local_data_sources/daily_goal_local_data_source.dart';
 import '../storage/local_data_sources/profile_local_data_source.dart';
 import '../storage/local_data_sources/program_local_data_source.dart';
 import '../storage/local_data_sources/settings_local_data_source.dart';
@@ -79,6 +86,7 @@ void configureDependencies({
   Clock clock = const Clock(),
   DayChangeSource? dayChanges,
   required MediaStore media,
+  StepCounter steps = const PedometerStepCounter(),
 }) {
   // Infrastructure
   getIt
@@ -90,7 +98,8 @@ void configureDependencies({
     ..registerLazySingleton<DayChangeSource>(
       () => dayChanges ?? AppDayChangeSource(getIt()),
     )
-    ..registerSingleton<MediaStore>(media);
+    ..registerSingleton<MediaStore>(media)
+    ..registerSingleton<StepCounter>(steps);
 
   // Local data sources
   getIt
@@ -98,7 +107,8 @@ void configureDependencies({
     ..registerLazySingleton(() => WorkoutLocalDataSource(getIt(), getIt()))
     ..registerLazySingleton(() => ProfileLocalDataSource(getIt()))
     ..registerLazySingleton(() => BodyWeightLocalDataSource(getIt()))
-    ..registerLazySingleton(() => SettingsLocalDataSource(getIt()));
+    ..registerLazySingleton(() => SettingsLocalDataSource(getIt()))
+    ..registerLazySingleton(() => DailyGoalLocalDataSource(getIt()));
 
   // Repositories
   getIt
@@ -131,6 +141,9 @@ void configureDependencies({
     )
     ..registerLazySingleton<ProgressRepository>(
       () => ProgressRepositoryImpl(getIt(), getIt(), getIt()),
+    )
+    ..registerLazySingleton<DailyGoalRepository>(
+      () => DailyGoalRepositoryImpl(getIt()),
     )
     ..registerLazySingleton<BodyWeightRepository>(
       () => BodyWeightRepositoryImpl(getIt()),
@@ -204,7 +217,22 @@ void configureDependencies({
     ..registerFactory(
       () => RemoveProfilePhotoUseCase(getIt(), getIt(), getIt()),
     )
-    ..registerFactory(() => DeleteAllDataUseCase(getIt(), getIt(), getIt()));
+    ..registerFactory(() => DeleteAllDataUseCase(getIt(), getIt(), getIt()))
+    // One shared instance so reminder syncs are queued, never interleaved.
+    ..registerLazySingleton(
+      () => SyncGoalRemindersUseCase(getIt(), getIt(), getIt()),
+    )
+    ..registerFactory(() => WatchTodayStepsUseCase(getIt(), getIt(), getIt()))
+    ..registerFactory(
+      () => WatchTodayGoalsUseCase(getIt(), getIt(), getIt(), getIt(), getIt()),
+    )
+    ..registerFactory(() => WatchDailyGoalsUseCase(getIt()))
+    ..registerFactory(() => LogGoalProgressUseCase(getIt(), getIt()))
+    ..registerFactory(
+      () => SaveGoalUseCase(getIt(), getIt(), getIt(), getIt(), getIt()),
+    )
+    ..registerFactory(() => RemoveGoalUseCase(getIt(), getIt()))
+    ..registerFactory(() => StepAccessUseCase(getIt()));
 
   // Cubits (created per route by BlocProvider; UnitsCubit at the app root)
   getIt
@@ -249,6 +277,20 @@ void configureDependencies({
         watchDashboard: getIt(),
         startWorkout: getIt(),
         addBodyWeight: getIt(),
+      ),
+    )
+    ..registerFactory(
+      () => TodayGoalsCubit(
+        watchToday: getIt(),
+        logProgress: getIt(),
+        stepAccess: getIt(),
+      ),
+    )
+    ..registerFactory(
+      () => DailyGoalsCubit(
+        watchGoals: getIt(),
+        saveGoal: getIt(),
+        removeGoal: getIt(),
       ),
     )
     ..registerFactory(() => PlanCubit(watchPlan: getIt()))

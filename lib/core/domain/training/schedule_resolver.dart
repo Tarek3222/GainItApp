@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../entities/program.dart';
+import '../utils/dates.dart' as dates;
 
 enum DayStatus {
   completed,
@@ -32,7 +33,7 @@ class ScheduledWorkout extends Equatable {
 abstract final class ScheduleResolver {
   static const weekStartsOn = DateTime.saturday;
 
-  static DateTime dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+  static DateTime dateOnly(DateTime d) => dates.dateOnly(d);
 
   /// Position of a weekday in the GainIt week (Saturday = 0 … Friday = 6).
   static int offsetInWeek(int weekday) => (weekday - weekStartsOn) % 7;

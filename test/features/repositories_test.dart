@@ -99,6 +99,7 @@ void main() {
       media = FakeMediaStore();
       when(() => scheduler.cancelWorkoutReminders()).thenAnswer((_) async {});
       when(() => scheduler.cancelRestOver()).thenAnswer((_) async {});
+      when(() => scheduler.cancelGoalReminders()).thenAnswer((_) async {});
     });
 
     test(
@@ -127,6 +128,7 @@ void main() {
         expect(harness.storage.programExercises.length, 27);
         expect(settings.schemaVersion(), StorageMigrator.latestVersion);
         verify(() => scheduler.cancelWorkoutReminders()).called(1);
+        verify(() => scheduler.cancelGoalReminders()).called(1);
         verify(() => scheduler.cancelRestOver()).called(1);
         expect(media.clearAllCalls, 1);
       },
@@ -155,6 +157,7 @@ void main() {
         expect(result.isSuccess, isTrue);
         expect(profile.profile(), isNull);
         verify(() => scheduler.cancelWorkoutReminders()).called(1);
+        verify(() => scheduler.cancelGoalReminders()).called(1);
         verify(() => scheduler.cancelRestOver()).called(1);
       },
     );

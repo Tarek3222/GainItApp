@@ -1,8 +1,12 @@
 import '../entities/app_settings.dart';
 import '../entities/body_weight_entry.dart';
+import '../entities/daily_goal.dart';
+import '../entities/enums.dart';
 import '../entities/program.dart';
 import '../entities/user_profile.dart';
 import '../entities/workout_session.dart';
+import '../goals/step_day_tracker.dart';
+import '../services/notification_scheduler.dart';
 
 /// Data-integrity rules (spec §22). Hive has no CHECK constraints, so every
 /// write goes through these before touching storage. Each returns a list of
@@ -117,6 +121,84 @@ abstract final class Validators {
     if (s.reminderMinutesOfDay < 0 || s.reminderMinutesOfDay >= 24 * 60)
       'Reminder time must be within the day.',
   ];
+
+  static const maxDailyGoals = 8;
+  static const maxGoalTitle = 30;
+  static const maxGoalUnit = 12;
+  static const maxWaterTargetMl = 10000.0;
+  static const maxStepTarget = 100000.0;
+  static const maxCustomTarget = 100000.0;
+  static const minReminderIntervalMinutes = 30;
+  static const maxReminderIntervalMinutes = 12 * 60;
+
+  /// Highest progress a single day can record on any goal.
+  static const maxGoalProgress = 1000000.0;
+
+  static List<String> dailyGoal(DailyGoal g) {
+    final (maxTarget, tooHigh) = switch (g.type) {
+      DailyGoalType.water => (
+        maxWaterTargetMl,
+        'Water goals are 10 L a day at most.',
+      ),
+      DailyGoalType.steps => (
+        maxStepTarget,
+        'Step goals are 100,000 a day at most.',
+      ),
+      DailyGoalType.custom => (maxCustomTarget, 'Targets are 100,000 at most.'),
+    };
+    return [
+      if (!g.target.isFinite || g.target <= 0) 'A goal needs a target above 0.',
+      if (g.target > maxTarget) tooHigh,
+      if (g.type == DailyGoalType.custom && g.title.trim().isEmpty)
+        'A goal needs a name.',
+      if (g.title.trim().length > maxGoalTitle)
+        'Goal names must be $maxGoalTitle characters or fewer.',
+      if (g.unit.trim().length > maxGoalUnit)
+        'Units must be $maxGoalUnit characters or fewer.',
+      // Only custom goals use their quick-add amount; water and steps use
+      // fixed servings, so their stored amount must not block a target.
+      if (g.type == DailyGoalType.custom &&
+          (!g.increment.isFinite || g.increment <= 0))
+        'The quick-add amount must be above 0.',
+      if (g.type == DailyGoalType.custom &&
+          g.increment.isFinite &&
+          g.increment > g.target)
+        'The quick-add amount cannot be more than the target.',
+      if (g.reminderIntervalMinutes < minReminderIntervalMinutes ||
+          g.reminderIntervalMinutes > maxReminderIntervalMinutes)
+        'Reminders must be between 30 minutes and 12 hours apart.',
+      if (!_isTimeOfDay(g.reminderStartMinutes) ||
+          !_isTimeOfDay(g.reminderEndMinutes))
+        'Reminder times must be within the day.',
+      if (g.reminderEndMinutes < g.reminderStartMinutes)
+        'The last reminder cannot be before the first.',
+    ];
+  }
+
+  static List<String> dailyGoalLog(DailyGoalLog l) => [
+    if (!l.amount.isFinite || l.amount < 0) 'Progress cannot be negative.',
+    if (l.amount.isFinite && l.amount > maxGoalProgress)
+      'That is more than a day can hold.',
+  ];
+
+  /// All goals together must fit the platform's pending-notification
+  /// limit, or later goals would silently get no reminders.
+  static List<String> goalReminders(List<DailyGoal> goals) {
+    final total = goals.fold(0, (sum, g) => sum + g.reminderTimes.length);
+    return [
+      if (total > NotificationScheduler.maxGoalReminders)
+        'Goals can send up to ${NotificationScheduler.maxGoalReminders} '
+            'reminders a day in total; this makes $total. Remind less often '
+            'or over fewer hours.',
+    ];
+  }
+
+  static List<String> stepTracker(StepTrackerState s) => [
+    if (s.lastCount < 0) 'Step counts cannot be negative.',
+    if (s.dayKey < 19000101 || s.dayKey > 99991231) 'Invalid step day.',
+  ];
+
+  static bool _isTimeOfDay(int minutes) => minutes >= 0 && minutes < 24 * 60;
 
   static List<String> session(WorkoutSession s) => [
     if (s.completedAt != null && s.completedAt!.isBefore(s.startedAt))

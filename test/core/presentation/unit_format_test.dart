@@ -7,6 +7,33 @@ void main() {
   const metric = UnitFormat(UnitSystem.metric);
   const imperial = UnitFormat(UnitSystem.imperial);
 
+  group('water', () {
+    test('metric shows ml under a litre and litres above', () {
+      expect(metric.water(750), '750 ml');
+      expect(metric.water(1500), '1.5 L');
+      expect(metric.waterProgress(1250, 3000), '1.25 / 3 L');
+      expect(metric.waterProgress(400, 750), '400 / 750 ml');
+    });
+
+    test('imperial shows US fluid ounces', () {
+      expect(imperial.water(236.6), '8 fl oz');
+      expect(imperial.waterProgress(1000, 3000), '33.8 / 101.4 fl oz');
+    });
+
+    test('servings are a glass and a bottle in display units', () {
+      expect(metric.waterServingsMl, [250, 500]);
+      expect(imperial.waterServingsMl.map(imperial.water), [
+        '8 fl oz',
+        '16 fl oz',
+      ]);
+    });
+
+    test('display values convert back to ml', () {
+      expect(imperial.fromDisplayWater(8), closeTo(236.59, 0.01));
+      expect(metric.fromDisplayWater(500), 500);
+    });
+  });
+
   test('metric shows stored values unchanged', () {
     expect(metric.weight(72.4), '72.4 kg');
     expect(metric.signedWeight(-0.5), '−0.5 kg');

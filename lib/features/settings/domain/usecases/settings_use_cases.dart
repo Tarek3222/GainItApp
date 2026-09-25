@@ -167,6 +167,7 @@ class DeleteAllDataUseCase {
       await _media.clearAll();
       try {
         await _scheduler.cancelWorkoutReminders();
+        await _scheduler.cancelGoalReminders();
         await _scheduler.cancelRestOver();
       } on Object {
         // Data is gone either way; stale notifications are harmless.

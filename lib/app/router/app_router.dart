@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/di/injection.dart';
 import '../../features/body_weight/presentation/cubits/body_weight_cubit.dart';
 import '../../features/body_weight/presentation/views/body_weight_view.dart';
+import '../../features/daily_goals/presentation/cubits/daily_goal_cubits.dart';
+import '../../features/daily_goals/presentation/views/daily_goals_view.dart';
 import '../../features/exercises/presentation/cubits/exercise_cubits.dart';
 import '../../features/exercises/presentation/views/exercise_detail_view.dart';
 import '../../features/exercises/presentation/views/exercise_editor_view.dart';
@@ -64,8 +66,13 @@ GoRouter createRouter({String initialLocation = RoutePaths.splash}) {
             routes: [
               GoRoute(
                 path: RoutePaths.home,
-                builder: (_, _) => BlocProvider(
-                  create: (_) => getIt<HomeCubit>()..start(),
+                builder: (_, _) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(create: (_) => getIt<HomeCubit>()..start()),
+                    BlocProvider(
+                      create: (_) => getIt<TodayGoalsCubit>()..start(),
+                    ),
+                  ],
                   child: const HomeView(),
                 ),
               ),
@@ -225,6 +232,13 @@ GoRouter createRouter({String initialLocation = RoutePaths.splash}) {
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: RoutePaths.dailyGoals,
+        builder: (_, _) => BlocProvider(
+          create: (_) => getIt<DailyGoalsCubit>()..start(),
+          child: const DailyGoalsView(),
+        ),
       ),
       GoRoute(
         path: RoutePaths.bodyWeight,
