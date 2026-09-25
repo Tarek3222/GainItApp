@@ -1,9 +1,12 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/route_paths.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
+import '../../../../core/l10n/enum_labels.dart';
+import '../../../../core/l10n/seed_names.dart';
 import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/state_views.dart';
@@ -19,10 +22,10 @@ class ProgressView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Progress'),
+        title: Text('progress.title'.tr()),
         actions: [
           IconButton(
-            tooltip: 'History',
+            tooltip: 'progress.history'.tr(),
             onPressed: () => context.push(RoutePaths.history),
             icon: const Icon(Icons.history),
           ),
@@ -59,7 +62,7 @@ class _BodyWeightSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionLabel(
-            'Body weight',
+            'progress.bodyWeight'.tr(),
             trailing: summary == null
                 ? null
                 : Text(
@@ -100,16 +103,16 @@ class _StrengthSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionLabel('Strength / performance'),
+          SectionLabel('progress.strength'.tr()),
           if (exercises.isEmpty)
             Text(
-              'Finish a workout to see exercise trends.',
+              'progress.strengthEmpty'.tr(),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           for (final exercise in exercises)
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: Text(exercise.name),
+              title: Text(seedName(exercise.name)),
               subtitle: Text(exercise.muscle.label),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push(RoutePaths.exercise(exercise.id)),
@@ -133,7 +136,7 @@ class _VolumeSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionLabel('Weekly volume · direct sets'),
+          SectionLabel('progress.weeklyVolume'.tr()),
           for (final m in volume)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),

@@ -15,7 +15,8 @@ final class StorageFailure extends Failure {
   const StorageFailure([super.message = 'Could not access local data.']);
 }
 
-/// Input rejected by a validator before it reached storage.
+/// Input rejected by a validator before it reached storage. [errors] are
+/// translation keys.
 final class ValidationFailure extends Failure {
   const ValidationFailure(this.errors) : super('Invalid input.');
 
@@ -31,9 +32,15 @@ final class NotFoundFailure extends Failure {
 }
 
 /// The requested operation is not allowed in the current state
-/// (e.g. logging a set on a finished workout).
+/// (e.g. logging a set on a finished workout). [message] is a translation
+/// key; [args] fill its `{placeholders}`.
 final class InvalidStateFailure extends Failure {
-  const InvalidStateFailure(super.message);
+  const InvalidStateFailure(super.message, {this.args = const {}});
+
+  final Map<String, String> args;
+
+  @override
+  List<Object?> get props => [message, args];
 }
 
 final class UnexpectedFailure extends Failure {

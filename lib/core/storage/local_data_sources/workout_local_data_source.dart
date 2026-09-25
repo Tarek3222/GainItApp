@@ -105,16 +105,16 @@ class WorkoutLocalDataSource {
     final active = activeSession();
     if (active != null) {
       if (active.workoutDayId == dayId) return active;
-      throw const InvalidStateException('A workout is already in progress.');
+      throw const InvalidStateException('errors.workoutInProgress');
     }
     final day = _programs.requireDay(dayId);
     if (!day.isWorkout) {
-      throw const InvalidStateException('This is a rest day.');
+      throw const InvalidStateException('errors.restDay');
     }
     final program = _programs.requireActiveProgram();
     final configs = _programs.programExercisesForDay(dayId);
     if (configs.isEmpty) {
-      throw const InvalidStateException('This workout has no exercises.');
+      throw const InvalidStateException('errors.noExercises');
     }
 
     final session = WorkoutSession(
@@ -171,7 +171,7 @@ class WorkoutLocalDataSource {
   /// Applies the workout state machine; throws when [action] is not allowed.
   SessionStatus _transition(WorkoutSession session, SessionAction action) {
     if (!WorkoutSessionRules.isAllowed(session.status, action)) {
-      throw const InvalidStateException('This workout is already finished.');
+      throw const InvalidStateException('errors.workoutFinished');
     }
     return WorkoutSessionRules.transition(session.status, action);
   }
@@ -199,7 +199,7 @@ class WorkoutLocalDataSource {
         .where((s) => s.sessionExerciseId == exercise.id)
         .fold<int>(0, (max, s) => s.setNumber > max ? s.setNumber : max);
     if (set.setNumber != latest) {
-      throw const InvalidStateException('Only the last set can be undone.');
+      throw const InvalidStateException('errors.onlyLastSetUndo');
     }
     await _storage.setLogs.delete(setId);
   }

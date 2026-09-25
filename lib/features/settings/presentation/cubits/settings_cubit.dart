@@ -1,9 +1,12 @@
+import 'package:easy_localization/easy_localization.dart';
+
 import '../../../../core/domain/entities/app_settings.dart';
 import '../../../../core/domain/entities/user_profile.dart';
 import '../../../../core/domain/services/media_store.dart';
 import '../../../../core/presentation/action_outcome.dart';
 import '../../../../core/presentation/view_state.dart';
 import '../../../../core/result/api_result.dart';
+import '../../../daily_goals/domain/usecases/daily_goal_use_cases.dart';
 import '../../domain/entities/settings_overview.dart';
 import '../../domain/usecases/settings_use_cases.dart';
 
@@ -15,6 +18,7 @@ class SettingsCubit extends StreamViewCubit<SettingsOverview> {
     required this._updatePhoto,
     required this._removePhoto,
     required this._deleteAllData,
+    required this._syncGoalReminders,
   });
 
   final WatchSettingsUseCase _watchSettings;
@@ -23,6 +27,7 @@ class SettingsCubit extends StreamViewCubit<SettingsOverview> {
   final UpdateProfilePhotoUseCase _updatePhoto;
   final RemoveProfilePhotoUseCase _removePhoto;
   final DeleteAllDataUseCase _deleteAllData;
+  final SyncGoalRemindersUseCase _syncGoalReminders;
 
   @override
   Stream<ApiResult<SettingsOverview>> source() => _watchSettings();
@@ -32,12 +37,26 @@ class SettingsCubit extends StreamViewCubit<SettingsOverview> {
   ) async {
     final current = state;
     if (current is! ViewLoaded<SettingsOverview>) {
-      return const ActionFailed('Settings are still loading.');
+      return ActionFailed('common.stillLoading'.tr());
     }
     final previous = current.data.settings;
     return ActionOutcome.from(
       await _updateSettings(previous: previous, next: change(previous)),
     );
+  }
+
+  /// Saves the app language ([code] `null` = phone language) and
+  /// reschedules reminders so their texts are in it. Call it once the app
+  /// shows the new language.
+  Future<ActionOutcome<void>> changeLanguage(String? code) async {
+    final saved = await updateSettings(
+      (s) => s.copyWith(languageCode: code, useSystemLanguage: code == null),
+    );
+    if (saved is ActionFailed<void>) return saved;
+    return switch (await _syncGoalReminders()) {
+      ApiSuccess() => const ActionDone(null),
+      ApiFailure() => ActionFailed('errors.remindersNotUpdated'.tr()),
+    };
   }
 
   Future<ActionOutcome<void>> updateProfile(

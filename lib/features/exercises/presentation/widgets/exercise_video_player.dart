@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -116,9 +117,9 @@ class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
   Widget build(BuildContext context) {
     final controller = _controller;
     if (_failed) {
-      return const _VideoMessage(
+      return _VideoMessage(
         icon: Icons.videocam_off_outlined,
-        text: 'This video cannot be played.',
+        text: 'video.cannotPlay'.tr(),
       );
     }
     if (controller == null || !controller.value.isInitialized) {
@@ -132,7 +133,7 @@ class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
     return Center(
       child: Semantics(
         button: true,
-        label: controller.value.isPlaying ? 'Pause video' : 'Play video',
+        label: (controller.value.isPlaying ? 'video.pause' : 'video.play').tr(),
         child: GestureDetector(
           // The whole video area toggles playback, not just painted pixels.
           behavior: HitTestBehavior.opaque,
@@ -171,7 +172,7 @@ class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
                     top: AppSpacing.xs,
                     end: AppSpacing.xs,
                     child: IconButton.filledTonal(
-                      tooltip: _muted ? 'Turn sound on' : 'Mute',
+                      tooltip: (_muted ? 'video.soundOn' : 'video.mute').tr(),
                       onPressed: _toggleSound,
                       icon: Icon(_muted ? Icons.volume_off : Icons.volume_up),
                     ),

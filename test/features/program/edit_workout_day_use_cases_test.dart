@@ -180,7 +180,6 @@ void main() {
               type: RecommendationType.firstSession,
               repMin: 6,
               repMax: 10,
-              reason: '',
             ),
           ),
       ],

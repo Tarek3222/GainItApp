@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -113,7 +114,7 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
     switch (_input.type) {
       case DailyGoalType.water:
         return NumberStepper(
-          label: '${units.waterUnit} per day',
+          label: 'goals.waterPerDay'.tr(namedArgs: {'unit': units.waterUnit}),
           value: units.toDisplayWater(_input.target),
           step: units.waterTargetStep,
           min: units.waterTargetStep,
@@ -125,7 +126,7 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
         );
       case DailyGoalType.steps:
         return NumberStepper(
-          label: 'steps per day',
+          label: 'goals.stepsPerDay'.tr(),
           value: _input.target,
           step: 500,
           min: 500,
@@ -134,7 +135,7 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
         );
       case DailyGoalType.custom:
         return NumberStepper(
-          label: 'target per day',
+          label: 'goals.targetPerDay'.tr(),
           value: _input.target,
           step: 1,
           min: 1,
@@ -174,18 +175,18 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
                   controller: _name,
                   maxLength: Validators.maxGoalTitle,
                   textCapitalization: TextCapitalization.sentences,
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    hintText: 'e.g. Read, Protein, Stretch',
+                  decoration: InputDecoration(
+                    labelText: 'goals.name'.tr(),
+                    hintText: 'goals.nameHint'.tr(),
                   ),
                   onChanged: (_) => setState(() => _error = null),
                 ),
                 TextField(
                   controller: _unit,
                   maxLength: Validators.maxGoalUnit,
-                  decoration: const InputDecoration(
-                    labelText: 'Unit (optional)',
-                    hintText: 'e.g. pages, g, min',
+                  decoration: InputDecoration(
+                    labelText: 'goals.unit'.tr(),
+                    hintText: 'goals.unitHint'.tr(),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
@@ -194,7 +195,7 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
               if (_isCustom) ...[
                 const SizedBox(height: AppSpacing.sm),
                 NumberStepper(
-                  label: 'quick add',
+                  label: 'goals.quickAdd'.tr(),
                   value: _input.increment,
                   step: 1,
                   min: 1,
@@ -207,11 +208,11 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
               const SizedBox(height: AppSpacing.md),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Remind me'),
+                title: Text('goals.remindMe'.tr()),
                 subtitle: Text(
                   _input.reminderEnabled
-                      ? '$perDay reminder${perDay == 1 ? '' : 's'} a day'
-                      : 'Notifications during the day',
+                      ? 'goals.remindersPerDay'.plural(perDay)
+                      : 'goals.remindersHint'.tr(),
                 ),
                 value: _input.reminderEnabled,
                 onChanged: (v) => _update(_input.copyWith(reminderEnabled: v)),
@@ -222,7 +223,7 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
                       _intervals.contains(_input.reminderIntervalMinutes)
                       ? _input.reminderIntervalMinutes
                       : null,
-                  decoration: const InputDecoration(labelText: 'Every'),
+                  decoration: InputDecoration(labelText: 'goals.every'.tr()),
                   items: [
                     for (final minutes in _intervals)
                       DropdownMenuItem(
@@ -243,8 +244,13 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
                       child: OutlinedButton(
                         onPressed: () => _pickTime(start: true),
                         child: Text(
-                          'From '
-                          '${Formatters.timeOfDay(_input.reminderStartMinutes)}',
+                          'goals.from'.tr(
+                            namedArgs: {
+                              'time': Formatters.timeOfDay(
+                                _input.reminderStartMinutes,
+                              ),
+                            },
+                          ),
                         ),
                       ),
                     ),
@@ -253,8 +259,13 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
                       child: OutlinedButton(
                         onPressed: () => _pickTime(start: false),
                         child: Text(
-                          'Until '
-                          '${Formatters.timeOfDay(_input.reminderEndMinutes)}',
+                          'goals.until'.tr(
+                            namedArgs: {
+                              'time': Formatters.timeOfDay(
+                                _input.reminderEndMinutes,
+                              ),
+                            },
+                          ),
                         ),
                       ),
                     ),
@@ -273,7 +284,7 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
               const SizedBox(height: AppSpacing.md),
               FilledButton(
                 onPressed: _saving ? null : _save,
-                child: const Text('Save'),
+                child: Text('common.save'.tr()),
               ),
             ],
           ),

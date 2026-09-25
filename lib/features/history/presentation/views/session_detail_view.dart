@@ -1,8 +1,11 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/route_paths.dart';
 import '../../../../app/theme/app_tokens.dart';
+import '../../../../core/l10n/enum_labels.dart';
+import '../../../../core/l10n/seed_names.dart';
 import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
@@ -17,18 +20,23 @@ class SessionDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Workout')),
+      appBar: AppBar(title: Text('history.workout'.tr())),
       body: ViewStateBuilder<SessionDetailCubit, SessionDetail>(
         onRetry: (cubit) => cubit.load(),
         builder: (context, detail) {
           final theme = Theme.of(context);
           return PageBody(
             children: [
-              Text(detail.workoutName, style: theme.textTheme.headlineSmall),
               Text(
-                '${Formatters.fullDate(detail.date)} · '
-                '${detail.workingSets} sets · '
-                '${Formatters.duration(detail.duration)}',
+                seedName(detail.workoutName),
+                style: theme.textTheme.headlineSmall,
+              ),
+              Text(
+                [
+                  Formatters.fullDate(detail.date),
+                  'common.sets'.plural(detail.workingSets),
+                  Formatters.duration(detail.duration),
+                ].join(' · '),
                 style: theme.textTheme.bodySmall,
               ),
               if (detail.notes != null) ...[
@@ -64,7 +72,10 @@ class _ExerciseCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text(exercise.name, style: theme.textTheme.titleMedium),
+                child: Text(
+                  seedName(exercise.name),
+                  style: theme.textTheme.titleMedium,
+                ),
               ),
               Text(exercise.muscle.label, style: theme.textTheme.bodySmall),
             ],
@@ -72,7 +83,7 @@ class _ExerciseCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           if (exercise.sets.isEmpty)
             Text(
-              exercise.skipped ? 'Skipped' : 'No sets logged',
+              (exercise.skipped ? 'history.skipped' : 'history.noSets').tr(),
               style: theme.textTheme.bodySmall,
             ),
           for (final set in exercise.sets)
@@ -83,7 +94,7 @@ class _ExerciseCard extends StatelessWidget {
                   SizedBox(
                     width: 56,
                     child: Text(
-                      'Set ${set.setNumber}',
+                      'workout.setN'.tr(namedArgs: {'n': '${set.setNumber}'}),
                       style: theme.textTheme.bodySmall,
                     ),
                   ),
@@ -93,7 +104,10 @@ class _ExerciseCard extends StatelessWidget {
                     ),
                   ),
                   if (set.rir != null)
-                    Text('RIR ${set.rir}', style: theme.textTheme.bodySmall),
+                    Text(
+                      'workout.rir'.tr(namedArgs: {'n': '${set.rir}'}),
+                      style: theme.textTheme.bodySmall,
+                    ),
                 ],
               ),
             ),

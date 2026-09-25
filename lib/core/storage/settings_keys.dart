@@ -8,6 +8,9 @@ abstract final class SettingsKeys {
   static const remindersEnabled = 'reminders_enabled';
   static const reminderMinutesOfDay = 'reminder_minutes_of_day';
 
+  /// App language code; absent to follow the phone.
+  static const languageCode = 'language_code';
+
   /// The default daily goals were added once; removed ones stay removed.
   static const dailyGoalsSeeded = 'daily_goals_seeded';
 

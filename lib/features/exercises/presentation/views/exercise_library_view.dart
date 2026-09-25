@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -5,6 +6,8 @@ import '../../../../app/router/route_paths.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../core/domain/entities/enums.dart';
 import '../../../../core/domain/entities/program.dart';
+import '../../../../core/l10n/enum_labels.dart';
+import '../../../../core/l10n/seed_names.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/muscle_chips.dart';
 import '../../../../core/widgets/state_views.dart';
@@ -63,12 +66,14 @@ class _ExerciseLibraryViewState extends State<ExerciseLibraryView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.pickMode ? 'Add exercise' : 'Exercise library'),
+        title: Text(
+          (widget.pickMode ? 'library.addExercise' : 'library.title').tr(),
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _create,
         icon: const Icon(Icons.add),
-        label: const Text('New exercise'),
+        label: Text('exercise.newExercise'.tr()),
       ),
       body: Column(
         children: [
@@ -81,9 +86,9 @@ class _ExerciseLibraryViewState extends State<ExerciseLibraryView> {
             ),
             child: TextField(
               controller: _search,
-              decoration: const InputDecoration(
-                hintText: 'Search exercises',
-                prefixIcon: Icon(Icons.search),
+              decoration: InputDecoration(
+                hintText: 'library.search'.tr(),
+                prefixIcon: const Icon(Icons.search),
               ),
               onChanged: (text) => setState(
                 () => _filter = ExerciseFilter(
@@ -125,12 +130,12 @@ class _ExerciseLibraryViewState extends State<ExerciseLibraryView> {
             child: ViewStateBuilder<ExerciseLibraryCubit, List<Exercise>>(
               onRetry: (cubit) => cubit.start(),
               builder: (context, all) {
-                final exercises = _filter.apply(all);
+                final exercises = _filter.apply(all, displayName: seedName);
                 if (exercises.isEmpty) {
-                  return const EmptyState(
+                  return EmptyState(
                     icon: Icons.search_off,
-                    title: 'No exercises found',
-                    message: 'Try another search, or create a new exercise.',
+                    title: 'library.noResults'.tr(),
+                    message: 'library.noResultsHint'.tr(),
                   );
                 }
                 return ListView.separated(
@@ -193,7 +198,7 @@ class _ExerciseRow extends StatelessWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        exercise.name,
+                        seedName(exercise.name),
                         style: theme.textTheme.titleMedium,
                       ),
                     ),
@@ -213,7 +218,7 @@ class _ExerciseRow extends StatelessWidget {
             ),
           ),
           if (alreadyAdded)
-            Text('In this workout', style: theme.textTheme.bodySmall)
+            Text('library.inThisWorkout'.tr(), style: theme.textTheme.bodySmall)
           else
             Icon(pickMode ? Icons.add_circle_outline : Icons.chevron_right),
         ],

@@ -1,7 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_tokens.dart';
 import '../domain/entities/enums.dart';
+import '../l10n/enum_labels.dart';
 
 /// Target muscles as chips: main muscles filled, assisting ones outlined.
 class MuscleChips extends StatelessWidget {
@@ -23,11 +25,14 @@ class MuscleChips extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final density = dense ? VisualDensity.compact : VisualDensity.standard;
     // Main vs assisting is shown by fill colour; say it for screen readers.
+    final separator = 'common.listSeparator'.tr();
+    String names(List<MuscleGroup> muscles) =>
+        muscles.map((m) => m.label).join(separator);
     final label = [
       if (primary.isNotEmpty)
-        'Main muscles: ${primary.map((m) => m.label).join(', ')}',
+        'muscleChips.main'.tr(namedArgs: {'muscles': names(primary)}),
       if (secondary.isNotEmpty)
-        'Also works: ${secondary.map((m) => m.label).join(', ')}',
+        'muscleChips.also'.tr(namedArgs: {'muscles': names(secondary)}),
     ].join('. ');
     return Semantics(
       container: true,

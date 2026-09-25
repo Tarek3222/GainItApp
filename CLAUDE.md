@@ -139,3 +139,11 @@ Product spec: `specs/GainIt_Project_Plan.md` (the spec's Riverpod/Drift choices 
 - Queries spanning many sessions take one `WorkoutLocalDataSource.snapshot()` (`WorkoutIndex`) — never call `setsOf`/`exercisesOf`/`performances` in a loop over sessions.
 - Routes: paths only via `RoutePaths`; cubits provided at the route in `app/router/app_router.dart`.
 - Widget tests that need storage use `HiveStorage.open(inMemory: true)` (file IO doesn't complete in fake-async).
+
+## Localization (easy_localization, English + Arabic)
+- Every user-facing text is a key in `assets/translations/{en,ar}.json`, used with `'key'.tr()` / `.plural(n)` in presentation. Add each key to both files (`test/core/l10n/translations_test.dart` checks keys, placeholders and plural forms).
+- Domain and data code never produce display text: validators, failures and exceptions carry message keys (`validation.*`, `errors.*`), translated by `Failure.userMessage` / `translateMessage` with `Validators.messageArgs`.
+- Built-in program, day and exercise names are stored in English; show them with `seedName(name)` (`core/l10n/seed_names.dart`). Enum names come from `core/l10n/enum_labels.dart`.
+- Numbers use Western digits in both languages; dates follow the app language (`Formatters`).
+- Layout must work right to left: use `EdgeInsetsDirectional` / `AlignmentDirectional` for anything one-sided.
+- The language lives in the settings box (`SettingsKeys.languageCode`, `null` = phone language). Tests load English texts globally (`test/flutter_test_config.dart`); full-app tests wrap the app with `pumpLocalizedApp`.

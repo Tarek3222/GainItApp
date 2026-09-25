@@ -55,10 +55,10 @@ class Recommendation extends Equatable {
     required this.type,
     required this.repMin,
     required this.repMax,
-    required this.reason,
     this.suggestedWeight,
     this.previousWeight,
     this.targetReps,
+    this.sessionsWithoutProgress = 0,
   });
 
   final RecommendationType type;
@@ -71,7 +71,9 @@ class Recommendation extends Equatable {
 
   /// Reps to aim for on each set this session.
   final int? targetReps;
-  final String reason;
+
+  /// Sessions in a row without progress; set for a deload.
+  final int sessionsWithoutProgress;
 
   @override
   List<Object?> get props => [
@@ -81,7 +83,7 @@ class Recommendation extends Equatable {
     repMin,
     repMax,
     targetReps,
-    reason,
+    sessionsWithoutProgress,
   ];
 }
 
@@ -148,7 +150,7 @@ class ProgressionEngine {
       repMin: inPounds.repMin,
       repMax: inPounds.repMax,
       targetReps: inPounds.targetReps,
-      reason: inPounds.reason,
+      sessionsWithoutProgress: inPounds.sessionsWithoutProgress,
     );
   }
 
@@ -167,9 +169,6 @@ class ProgressionEngine {
         repMin: config.repMin,
         repMax: config.repMax,
         targetReps: config.repMin,
-        reason:
-            'No history yet. Pick a weight you can lift for '
-            '${config.repMin}–${config.repMax} reps.',
       );
     }
 
@@ -184,7 +183,6 @@ class ProgressionEngine {
         repMin: config.repMin,
         repMax: config.repMax,
         targetReps: config.repMin,
-        reason: 'All working sets reached ${config.repMax} reps. Add weight.',
       );
     }
 
@@ -196,9 +194,7 @@ class ProgressionEngine {
         repMin: config.repMin,
         repMax: config.repMax,
         targetReps: config.repMax,
-        reason:
-            'No progress for ${stalledSessions(sessions) + 1} sessions. '
-            'Reduce the load ~10% and rebuild.',
+        sessionsWithoutProgress: stalledSessions(sessions) + 1,
       );
     }
 
@@ -214,7 +210,6 @@ class ProgressionEngine {
       repMin: config.repMin,
       repMax: config.repMax,
       targetReps: target,
-      reason: 'Keep the same weight and aim for $target+ reps per set.',
     );
   }
 

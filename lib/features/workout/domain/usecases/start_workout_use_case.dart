@@ -18,8 +18,8 @@ class StartWorkoutUseCase {
         if (session.workoutDayId == workoutDayId) return ApiSuccess(session.id);
         return ApiFailure(
           InvalidStateFailure(
-            'Finish or discard "${session.workoutName}" before starting '
-            'another workout.',
+            'errors.finishOtherWorkout',
+            args: {'name': session.workoutName},
           ),
         );
       case ApiSuccess():

@@ -67,7 +67,7 @@ void main() {
     when(() => cubit.state).thenReturn(
       ViewLoaded(
         HomeDashboard(
-          greeting: 'Good evening',
+          greeting: GreetingTime.evening,
           name: 'Tarek',
           weekNumber: 4,
           programName: 'Hypertrophy',
@@ -163,7 +163,6 @@ void main() {
         repMin: 6,
         repMax: 10,
         targetReps: 6,
-        reason: 'All working sets reached 10 reps. Add weight.',
       ),
     );
 
@@ -248,7 +247,6 @@ void main() {
                 repMin: 6,
                 repMax: 10,
                 targetReps: 6,
-                reason: 'Pick a weight you can lift for 6–10 reps.',
               ),
             ),
             onLogSet: (_, _, _) async {},
@@ -287,7 +285,6 @@ void main() {
                   repMin: 6,
                   repMax: 10,
                   targetReps: 9,
-                  reason: 'Keep the same weight and aim for 9+ reps per set.',
                 ),
               ),
               onLogSet: (w, r, rir) async => logged = (w, r, rir),

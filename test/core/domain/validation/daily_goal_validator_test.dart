@@ -31,13 +31,13 @@ void main() {
 
   test('a custom quick-add amount cannot exceed the target', () {
     expect(Validators.dailyGoal(goal(DailyGoalType.custom, 5, increment: 10)), [
-      'The quick-add amount cannot be more than the target.',
+      'validation.quickAddMax',
     ]);
   });
 
   test('a custom quick-add amount must be above 0', () {
     expect(Validators.dailyGoal(goal(DailyGoalType.custom, 5, increment: 0)), [
-      'The quick-add amount must be above 0.',
+      'validation.quickAddPositive',
     ]);
   });
 
@@ -49,7 +49,7 @@ void main() {
           3000,
         ).copyWith(reminderStartMinutes: 20 * 60, reminderEndMinutes: 8 * 60),
       ),
-      ['The last reminder cannot be before the first.'],
+      ['validation.reminderOrder'],
     );
   });
 }

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -182,7 +183,7 @@ class MeasurePickerCard extends StatelessWidget {
               Text(title, style: theme.textTheme.titleSmall),
               const Spacer(),
               Text(
-                isSet ? summary : 'Not set',
+                isSet ? summary : 'pickers.notSet'.tr(),
                 style: theme.textTheme.titleSmall?.copyWith(
                   color: isSet
                       ? theme.colorScheme.primary
@@ -197,7 +198,7 @@ class MeasurePickerCard extends StatelessWidget {
             Align(
               child: TextButton(
                 onPressed: onConfirm,
-                child: Text('Use $summary'),
+                child: Text('pickers.use'.tr(namedArgs: {'value': summary})),
               ),
             ),
           if (error != null)
@@ -256,7 +257,7 @@ class HeightPicker extends StatelessWidget {
     final units = UnitFormat(system);
     if (units.isMetric) {
       return MeasurePickerCard(
-        title: 'Height',
+        title: 'pickers.height'.tr(),
         summary: units.height(heightCm),
         isSet: isSet,
         onConfirm: onConfirm,
@@ -266,16 +267,16 @@ class HeightPicker extends StatelessWidget {
             min: minCm,
             max: maxCm,
             value: heightCm.round(),
-            semanticLabel: 'Height in centimetres',
+            semanticLabel: 'pickers.heightCm'.tr(),
             onChanged: (cm) => onChanged(cm.toDouble()),
           ),
-          const _UnitLabel('cm'),
+          _UnitLabel('units.cm'.tr()),
         ],
       );
     }
     final (:feet, :inches) = UnitConverter.cmToFeetInches(heightCm);
     return MeasurePickerCard(
-      title: 'Height',
+      title: 'pickers.height'.tr(),
       summary: units.height(heightCm),
       isSet: isSet,
       onConfirm: onConfirm,
@@ -286,21 +287,21 @@ class HeightPicker extends StatelessWidget {
           max: 8,
           value: feet,
           width: 56,
-          semanticLabel: 'Height, feet',
+          semanticLabel: 'pickers.heightFeet'.tr(),
           onChanged: (ft) =>
               onChanged(_clamp(UnitConverter.feetInchesToCm(ft, inches))),
         ),
-        const _UnitLabel('ft'),
+        _UnitLabel('units.ft'.tr()),
         WheelNumberPicker(
           min: 0,
           max: 11,
           value: inches,
           width: 56,
-          semanticLabel: 'Height, inches',
+          semanticLabel: 'pickers.heightInches'.tr(),
           onChanged: (inch) =>
               onChanged(_clamp(UnitConverter.feetInchesToCm(feet, inch))),
         ),
-        const _UnitLabel('in'),
+        _UnitLabel('units.inch'.tr()),
       ],
     );
   }
@@ -361,7 +362,9 @@ class BodyWeightPicker extends StatelessWidget {
           max: units.isMetric ? _maxKg : _maxLb,
           value: whole,
           width: 80,
-          semanticLabel: 'Weight, whole ${units.weightUnit}',
+          semanticLabel: 'pickers.weightWhole'.tr(
+            namedArgs: {'unit': units.weightUnit},
+          ),
           onChanged: (w) => emit(w, decimal),
         ),
         const _UnitLabel('.'),
@@ -370,7 +373,7 @@ class BodyWeightPicker extends StatelessWidget {
           max: 9,
           value: decimal,
           width: 48,
-          semanticLabel: 'Weight, tenths',
+          semanticLabel: 'pickers.weightTenths'.tr(),
           onChanged: (d) => emit(whole, d),
         ),
         _UnitLabel(units.weightUnit),
@@ -406,8 +409,8 @@ class AgePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MeasurePickerCard(
-      title: 'Age',
-      summary: '$age years',
+      title: 'pickers.age'.tr(),
+      summary: 'pickers.ageYears'.tr(namedArgs: {'age': '$age'}),
       isSet: isSet,
       onConfirm: onConfirm,
       errorText: errorText,
@@ -416,10 +419,10 @@ class AgePicker extends StatelessWidget {
           min: min,
           max: max,
           value: age,
-          semanticLabel: 'Age in years',
+          semanticLabel: 'pickers.ageInYears'.tr(),
           onChanged: onChanged,
         ),
-        const _UnitLabel('years'),
+        _UnitLabel('units.years'.tr()),
       ],
     );
   }
@@ -439,9 +442,15 @@ class UnitSystemToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SegmentedButton<UnitSystem>(
-      segments: const [
-        ButtonSegment(value: UnitSystem.metric, label: Text('kg · cm')),
-        ButtonSegment(value: UnitSystem.imperial, label: Text('lb · ft')),
+      segments: [
+        ButtonSegment(
+          value: UnitSystem.metric,
+          label: Text('units.metricToggle'.tr()),
+        ),
+        ButtonSegment(
+          value: UnitSystem.imperial,
+          label: Text('units.imperialToggle'.tr()),
+        ),
       ],
       selected: {value},
       showSelectedIcon: false,

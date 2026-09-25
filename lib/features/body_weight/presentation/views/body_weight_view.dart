@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -35,7 +36,7 @@ class BodyWeightView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Body weight')),
+      appBar: AppBar(title: Text('bodyWeight.title'.tr())),
       floatingActionButton: Builder(
         builder: (context) => FloatingActionButton.extended(
           onPressed: () {
@@ -46,16 +47,16 @@ class BodyWeightView extends StatelessWidget {
             );
           },
           icon: const Icon(Icons.add),
-          label: const Text('Log weight'),
+          label: Text('bodyWeight.log'.tr()),
         ),
       ),
       body: ViewStateBuilder<BodyWeightCubit, BodyWeightOverview>(
         onRetry: (cubit) => cubit.start(),
         builder: (context, overview) => overview.isEmpty
-            ? const EmptyState(
+            ? EmptyState(
                 icon: Icons.monitor_weight_outlined,
-                title: 'No weigh-ins yet',
-                message: 'Log your weight to track your trend.',
+                title: 'bodyWeight.empty'.tr(),
+                message: 'bodyWeight.emptyHint'.tr(),
               )
             : _Body(overview: overview),
       ),
@@ -76,7 +77,7 @@ class _Body extends StatelessWidget {
     final units = context.units;
     final series = [
       ChartSeries(
-        label: 'Weigh-ins',
+        label: 'bodyWeight.weighIns'.tr(),
         color: semantic.mutedText,
         showDots: true,
         dashed: true,
@@ -86,7 +87,7 @@ class _Body extends StatelessWidget {
         ],
       ),
       ChartSeries(
-        label: '7-day average',
+        label: 'bodyWeight.average'.tr(),
         color: theme.colorScheme.primary,
         showDots: false,
         points: [
@@ -107,7 +108,7 @@ class _Body extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SectionLabel('Current'),
+              SectionLabel('bodyWeight.current'.tr()),
               Text(
                 context.units.weight(summary.latest.weightKg),
                 style: AppTypography.metricLarge.copyWith(
@@ -116,8 +117,14 @@ class _Body extends StatelessWidget {
               ),
               if (summary.changeOverPeriod != null)
                 Text(
-                  '${context.units.signedWeight(summary.changeOverPeriod!)} '
-                  '/ ${summary.periodDays ~/ 7} wk',
+                  'home.weightChange'.tr(
+                    namedArgs: {
+                      'change': context.units.signedWeight(
+                        summary.changeOverPeriod!,
+                      ),
+                      'weeks': '${summary.periodDays ~/ 7}',
+                    },
+                  ),
                   style: theme.textTheme.bodySmall,
                 ),
               const SizedBox(height: AppSpacing.md),
@@ -128,14 +135,16 @@ class _Body extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        const SectionLabel('History'),
+        SectionLabel('bodyWeight.history'.tr()),
         for (final entry in overview.entries)
           Dismissible(
             key: ValueKey(entry.id),
             direction: DismissDirection.endToStart,
             background: Container(
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: AppSpacing.lg),
+              // Swiping toward the start reveals it at the end, in either
+              // reading direction.
+              alignment: AlignmentDirectional.centerEnd,
+              padding: const EdgeInsetsDirectional.only(end: AppSpacing.lg),
               color: semantic.danger,
               child: const Icon(Icons.delete_outline, color: Colors.white),
             ),

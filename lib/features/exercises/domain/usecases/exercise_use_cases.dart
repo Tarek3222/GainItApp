@@ -27,13 +27,16 @@ class WatchExerciseDetailsUseCase {
   final ExerciseRepository _repository;
   final ExerciseGuideRepository _guides;
 
-  Stream<ApiResult<ExerciseDetails>> call(String exerciseId) => combineResults(
+  Stream<ApiResult<ExerciseDetails>> call(
+    String exerciseId, {
+    String languageCode = 'en',
+  }) => combineResults(
     _repository.watchDetails(exerciseId),
     // The guide is extra: if it can't load, the rest of the screen still
     // shows (muscles, media, notes) and flags the guide as unavailable.
     Stream.fromFuture(
       _guides
-          .guideFor(exerciseId)
+          .guideFor(exerciseId, languageCode: languageCode)
           .then(
             (result) => ApiSuccess<({ExerciseGuide? guide, bool failed})>(
               switch (result) {
@@ -144,12 +147,7 @@ class AttachExerciseMediaUseCase {
       if (before case ApiSuccess(
         :final data,
       ) when data.photos.length >= Validators.maxExerciseImages) {
-        return const ApiFailure(
-          ValidationFailure([
-            'An exercise can have up to ${Validators.maxExerciseImages} '
-                'photos. Remove one to add another.',
-          ]),
-        );
+        return const ApiFailure(ValidationFailure(['errors.photosFull']));
       }
     }
     final picked = switch (kind) {

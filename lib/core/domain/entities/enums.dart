@@ -2,26 +2,23 @@
 // values at the end. Reordering or removing values corrupts saved data.
 
 /// Muscle groups used for exercise mapping and volume calculation.
+/// Display names live in `core/l10n/enum_labels.dart`.
 enum MuscleGroup {
-  chest('Chest'),
-  back('Back'),
-  traps('Traps'),
-  frontDelts('Front delts'),
-  sideDelts('Side delts'),
-  rearDelts('Rear delts'),
-  biceps('Biceps'),
-  triceps('Triceps'),
-  forearms('Forearms'),
-  quads('Quads'),
-  hamstrings('Hamstrings'),
-  glutes('Glutes'),
-  calves('Calves'),
-  lowerBack('Lower back'),
-  abs('Abs');
-
-  const MuscleGroup(this.label);
-
-  final String label;
+  chest,
+  back,
+  traps,
+  frontDelts,
+  sideDelts,
+  rearDelts,
+  biceps,
+  triceps,
+  forearms,
+  quads,
+  hamstrings,
+  glutes,
+  calves,
+  lowerBack,
+  abs,
 }
 
 enum ExerciseCategory { compound, isolation }
@@ -32,15 +29,7 @@ enum SessionStatus { inProgress, completed, abandoned }
 
 enum ProgressionType { doubleProgression }
 
-enum TrainingGoal {
-  gainMuscle('Gain muscle'),
-  maintain('Maintain'),
-  cut('Cut');
-
-  const TrainingGoal(this.label);
-
-  final String label;
-}
+enum TrainingGoal { gainMuscle, maintain, cut }
 
 /// How weights and heights are shown. Storage is always kg / cm.
 enum UnitSystem { metric, imperial }

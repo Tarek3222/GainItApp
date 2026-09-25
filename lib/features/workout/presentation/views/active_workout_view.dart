@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/route_paths.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
+import '../../../../core/l10n/seed_names.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../domain/entities/active_workout.dart';
 import '../cubits/active_workout_cubit.dart';
@@ -131,7 +133,7 @@ class _WorkoutScaffoldState extends State<_WorkoutScaffold> {
   void _startRest(ActiveExercise exercise) {
     context.read<RestTimerCubit>().start(
       seconds: exercise.snapshot.restSeconds,
-      exerciseName: exercise.snapshot.exerciseName,
+      exerciseName: seedName(exercise.snapshot.exerciseName),
     );
   }
 
@@ -139,22 +141,20 @@ class _WorkoutScaffoldState extends State<_WorkoutScaffold> {
     final progress = widget.workout.progress;
     final remaining = progress.totalSets - progress.completedSets;
     final ok = await _confirm(
-      title: 'Finish workout?',
+      title: 'workout.finishTitle'.tr(),
       message: remaining > 0
-          ? '$remaining planned sets are not logged yet. They will not count.'
-          : 'Great work. Save this workout to your history.',
-      confirm: 'Finish',
+          ? 'workout.finishUnlogged'.plural(remaining)
+          : 'workout.finishDone'.tr(),
+      confirm: 'common.finish'.tr(),
     );
     if (ok && mounted) await context.read<ActiveWorkoutCubit>().finish();
   }
 
   Future<void> _confirmDiscard() async {
     final ok = await _confirm(
-      title: 'Discard workout?',
-      message:
-          'This workout will not count toward history or progression. '
-          'This cannot be undone.',
-      confirm: 'Discard',
+      title: 'workout.discardTitle'.tr(),
+      message: 'workout.discardMessage'.tr(),
+      confirm: 'workout.discard'.tr(),
       destructive: true,
     );
     if (ok && mounted) await context.read<ActiveWorkoutCubit>().abandon();
@@ -174,7 +174,7 @@ class _WorkoutScaffoldState extends State<_WorkoutScaffold> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -200,26 +200,39 @@ class _WorkoutScaffoldState extends State<_WorkoutScaffold> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(workout.session.workoutName, overflow: TextOverflow.ellipsis),
             Text(
-              '${workout.progress.completedSets} of '
-              '${workout.progress.totalSets} sets',
+              seedName(workout.session.workoutName),
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              'workout.setsProgress'.tr(
+                namedArgs: {
+                  'done': '${workout.progress.completedSets}',
+                  'total': '${workout.progress.totalSets}',
+                },
+              ),
               style: theme.textTheme.bodySmall,
             ),
           ],
         ),
         actions: [
           IconButton(
-            tooltip: 'Start rest timer',
+            tooltip: 'workout.startRest'.tr(),
             onPressed: () => _startRest(_viewed),
             icon: const Icon(Icons.timer_outlined),
           ),
           PopupMenuButton<String>(
             onSelected: (value) =>
                 value == 'finish' ? _confirmFinish() : _confirmDiscard(),
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'finish', child: Text('Finish workout')),
-              PopupMenuItem(value: 'discard', child: Text('Discard workout')),
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: 'finish',
+                child: Text('workout.finishWorkout'.tr()),
+              ),
+              PopupMenuItem(
+                value: 'discard',
+                child: Text('workout.discardWorkout'.tr()),
+              ),
             ],
           ),
         ],
@@ -276,7 +289,7 @@ class _WorkoutScaffoldState extends State<_WorkoutScaffold> {
               child: FilledButton.icon(
                 onPressed: context.read<ActiveWorkoutCubit>().finish,
                 icon: const Icon(Icons.flag),
-                label: const Text('Finish workout'),
+                label: Text('workout.finishWorkout'.tr()),
               ),
             ),
           const RestTimerPanel(),
@@ -321,7 +334,7 @@ class _ExerciseStrip extends StatelessWidget {
           return ChoiceChip(
             avatar: icon,
             label: Text(
-              '${index + 1}. ${e.snapshot.exerciseName}',
+              '${index + 1}. ${seedName(e.snapshot.exerciseName)}',
               overflow: TextOverflow.ellipsis,
             ),
             selected: index == selected,

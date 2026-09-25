@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/route_paths.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../core/domain/entities/enums.dart';
+import '../../../../core/l10n/enum_labels.dart';
+import '../../../../core/l10n/seed_names.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/state_views.dart';
@@ -18,15 +21,15 @@ class HistoryView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('History')),
+      appBar: AppBar(title: Text('history.title'.tr())),
       body: ViewStateBuilder<HistoryCubit, HistoryData>(
         onRetry: (cubit) => cubit.start(),
         builder: (context, data) {
           if (data.totalSessions == 0) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.history,
-              title: 'No workouts yet',
-              message: 'Completed workouts will appear here.',
+              title: 'history.empty'.tr(),
+              message: 'history.emptyHint'.tr(),
             );
           }
           return Column(
@@ -34,9 +37,9 @@ class HistoryView extends StatelessWidget {
               _FilterBar(data: data),
               Expanded(
                 child: data.items.isEmpty
-                    ? const EmptyState(
+                    ? EmptyState(
                         icon: Icons.filter_alt_off_outlined,
-                        title: 'No workouts match these filters',
+                        title: 'history.noMatch'.tr(),
                       )
                     : PageBody(
                         children: [
@@ -90,7 +93,7 @@ class _FilterBar extends StatelessWidget {
         children: [
           for (final option in data.exerciseOptions)
             ListTile(
-              title: Text(option.name),
+              title: Text(seedName(option.name)),
               onTap: () => Navigator.pop(context, option.id),
             ),
         ],
@@ -122,7 +125,7 @@ class _FilterBar extends StatelessWidget {
     final filter = data.filter;
     final exerciseName = data.exerciseOptions
         .where((o) => o.id == filter.exerciseId)
-        .map((o) => o.name)
+        .map((o) => seedName(o.name))
         .firstOrNull;
     return SizedBox(
       height: AppSpacing.minTouchTarget + AppSpacing.sm,
@@ -134,13 +137,13 @@ class _FilterBar extends StatelessWidget {
         ),
         children: [
           FilterChip(
-            label: const Text('All'),
+            label: Text('history.all'.tr()),
             selected: filter.isEmpty,
             onSelected: (_) => cubit.applyFilter(const HistoryFilter()),
           ),
           const SizedBox(width: AppSpacing.sm),
           FilterChip(
-            label: Text(filter.muscle?.label ?? 'Muscle'),
+            label: Text(filter.muscle?.label ?? 'history.muscle'.tr()),
             selected: filter.muscle != null,
             onSelected: (_) => filter.muscle != null
                 ? cubit.applyFilter(filter.copyWith(muscle: () => null))
@@ -148,7 +151,7 @@ class _FilterBar extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.sm),
           FilterChip(
-            label: Text(exerciseName ?? 'Exercise'),
+            label: Text(exerciseName ?? 'history.exercise'.tr()),
             selected: filter.exerciseId != null,
             onSelected: (_) => filter.exerciseId != null
                 ? cubit.applyFilter(filter.copyWith(exerciseId: () => null))
@@ -158,7 +161,7 @@ class _FilterBar extends StatelessWidget {
           FilterChip(
             label: Text(
               filter.from == null
-                  ? 'Dates'
+                  ? 'history.dates'.tr()
                   : '${Formatters.shortDate(filter.from!)} – '
                         '${Formatters.shortDate(filter.to!)}',
             ),
@@ -192,7 +195,7 @@ class _HistoryTile extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  item.workoutName,
+                  seedName(item.workoutName),
                   style: theme.textTheme.titleMedium,
                 ),
               ),
@@ -204,8 +207,13 @@ class _HistoryTile extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xxs),
           Text(
-            '${item.workingSets} sets · ${Formatters.duration(item.duration)} · '
-            '${item.muscles.map((m) => m.label).join(', ')}',
+            [
+              'common.sets'.plural(item.workingSets),
+              Formatters.duration(item.duration),
+              item.muscles
+                  .map((m) => m.label)
+                  .join('common.listSeparator'.tr()),
+            ].join(' · '),
             style: theme.textTheme.bodySmall,
           ),
         ],

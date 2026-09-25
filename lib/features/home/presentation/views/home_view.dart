@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../core/domain/training/performance.dart';
+import '../../../../core/l10n/seed_names.dart';
 import '../../../../core/presentation/action_outcome.dart';
 import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/utils/formatters.dart';
@@ -53,7 +55,7 @@ class HomeView extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: () => context.push(RoutePaths.history),
                 icon: const Icon(Icons.history),
-                label: const Text('Workout history'),
+                label: Text('home.workoutHistory'.tr()),
               ),
             ],
           ),
@@ -71,17 +73,26 @@ class _Greeting extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final name = dashboard.name.isEmpty ? '' : ', ${dashboard.name}';
+    final greeting = 'home.greeting.${dashboard.greeting.name}'.tr();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: AppSpacing.sm),
         Text(
-          '${dashboard.greeting}$name',
+          dashboard.name.isEmpty
+              ? greeting
+              : 'home.greetingName'.tr(
+                  namedArgs: {'greeting': greeting, 'name': dashboard.name},
+                ),
           style: theme.textTheme.headlineSmall,
         ),
         Text(
-          'Week ${dashboard.weekNumber} · ${dashboard.programName}',
+          'home.weekOf'.tr(
+            namedArgs: {
+              'week': '${dashboard.weekNumber}',
+              'program': seedName(dashboard.programName),
+            },
+          ),
           style: theme.textTheme.bodySmall,
         ),
       ],
@@ -126,16 +137,16 @@ class _NextWorkoutCardState extends State<_NextWorkoutCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SectionLabel('Workout in progress'),
+            SectionLabel('home.inProgress'.tr()),
             Text(
-              dashboard.activeWorkoutName ?? '',
+              seedName(dashboard.activeWorkoutName ?? ''),
               style: theme.textTheme.titleLarge,
             ),
             const SizedBox(height: AppSpacing.md),
             FilledButton.icon(
               onPressed: () => context.go(RoutePaths.workout(activeId)),
               icon: const Icon(Icons.play_arrow),
-              label: const Text('Resume workout'),
+              label: Text('home.resume'.tr()),
             ),
           ],
         ),
@@ -144,10 +155,10 @@ class _NextWorkoutCardState extends State<_NextWorkoutCard> {
 
     final next = dashboard.nextWorkout;
     if (next == null) {
-      return const AppCard(child: Text('No workouts scheduled.'));
+      return AppCard(child: Text('home.noWorkouts'.tr()));
     }
     final when = next.isToday
-        ? 'Today'
+        ? 'home.today'.tr()
         : '${Formatters.weekday(next.date.weekday)}, '
               '${Formatters.shortDate(next.date)}';
     return AppCard(
@@ -155,18 +166,24 @@ class _NextWorkoutCardState extends State<_NextWorkoutCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SectionLabel('Next workout'),
-          Text(next.name, style: theme.textTheme.titleLarge),
+          SectionLabel('home.nextWorkout'.tr()),
+          Text(seedName(next.name), style: theme.textTheme.titleLarge),
           const SizedBox(height: AppSpacing.xxs),
           Text(
-            '$when · ${next.exerciseCount} exercises · ${next.totalSets} sets',
+            'home.nextDetails'.tr(
+              namedArgs: {
+                'when': when,
+                'exercises': 'common.exercises'.plural(next.exerciseCount),
+                'sets': 'common.sets'.plural(next.totalSets),
+              },
+            ),
             style: theme.textTheme.bodySmall,
           ),
           const SizedBox(height: AppSpacing.md),
           FilledButton.icon(
             onPressed: _busy ? null : () => _start(next.dayId),
             icon: const Icon(Icons.play_arrow),
-            label: const Text('Start workout'),
+            label: Text('home.startWorkout'.tr()),
           ),
         ],
       ),
@@ -189,7 +206,7 @@ class _BodyWeightCard extends StatelessWidget {
     final outcome = await cubit.logBodyWeight(kg);
     if (!context.mounted) return;
     showMessage(context, switch (outcome) {
-      ActionDone() => 'Weight saved.',
+      ActionDone() => 'home.weightSaved'.tr(),
       ActionFailed(:final message) => message,
     });
   }
@@ -207,7 +224,7 @@ class _BodyWeightCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SectionLabel('Body weight'),
+                SectionLabel('home.bodyWeight'.tr()),
                 Text(
                   summary == null
                       ? '—'
@@ -218,15 +235,19 @@ class _BodyWeightCard extends StatelessWidget {
                 ),
                 if (change != null)
                   Text(
-                    '${context.units.signedWeight(change)} / '
-                    '${summary!.periodDays ~/ 7} wk',
+                    'home.weightChange'.tr(
+                      namedArgs: {
+                        'change': context.units.signedWeight(change),
+                        'weeks': '${summary!.periodDays ~/ 7}',
+                      },
+                    ),
                     style: theme.textTheme.bodySmall,
                   ),
               ],
             ),
           ),
           IconButton.filledTonal(
-            tooltip: 'Log body weight',
+            tooltip: 'home.logBodyWeight'.tr(),
             onPressed: () => _log(context),
             icon: const Icon(Icons.add),
           ),
@@ -250,9 +271,14 @@ class _ThisWeekCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionLabel('This week'),
+          SectionLabel('home.thisWeek'.tr()),
           Text(
-            '${dashboard.weekCompletedWorkouts}/$planned workouts',
+            'home.workoutsDone'.tr(
+              namedArgs: {
+                'done': '${dashboard.weekCompletedWorkouts}',
+                'planned': '$planned',
+              },
+            ),
             style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: AppSpacing.xs),
@@ -263,7 +289,7 @@ class _ThisWeekCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            '${dashboard.weekWorkingSets} working sets',
+            'common.workingSets'.plural(dashboard.weekWorkingSets),
             style: theme.textTheme.bodySmall,
           ),
         ],
@@ -290,14 +316,22 @@ class _LastProgressCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionLabel('Last progress'),
-          Text(progress.exerciseName, style: theme.textTheme.titleMedium),
+          SectionLabel('home.lastProgress'.tr()),
+          Text(
+            seedName(progress.exerciseName),
+            style: theme.textTheme.titleMedium,
+          ),
           const SizedBox(height: AppSpacing.xxs),
           Text(
             previous == null
                 ? _describe(context.units, progress.current)
-                : '${_describe(context.units, previous)} → '
-                      '${_describe(context.units, progress.current)}',
+                // The arrow points from old to new in either direction.
+                : 'home.progressChange'.tr(
+                    namedArgs: {
+                      'from': _describe(context.units, previous),
+                      'to': _describe(context.units, progress.current),
+                    },
+                  ),
             style: theme.textTheme.bodyMedium?.copyWith(
               color: progress.comparison.isImprovement
                   ? context.semanticColors.success

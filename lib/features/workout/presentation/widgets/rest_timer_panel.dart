@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -108,14 +109,17 @@ class _TimerBody extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          finished ? 'REST OVER' : (paused ? 'PAUSED' : 'REST'),
+                          (finished
+                                  ? 'rest.over'
+                                  : (paused ? 'rest.paused' : 'rest.label'))
+                              .tr(),
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: accent,
                           ),
                         ),
                         Text(
                           finished
-                              ? 'Go!'
+                              ? 'rest.go'.tr()
                               : Formatters.timer(
                                   // Round up so "0:00" only shows at the end.
                                   Duration(
@@ -133,17 +137,17 @@ class _TimerBody extends StatelessWidget {
                   ),
                   if (!finished) ...[
                     IconButton(
-                      tooltip: 'Minus 15 seconds',
+                      tooltip: 'rest.minus15'.tr(),
                       onPressed: () => cubit.adjust(-RestTimerCubit.adjustStep),
                       icon: const Text('−15'),
                     ),
                     IconButton(
-                      tooltip: 'Plus 15 seconds',
+                      tooltip: 'rest.plus15'.tr(),
                       onPressed: () => cubit.adjust(RestTimerCubit.adjustStep),
                       icon: const Text('+15'),
                     ),
                     IconButton.filledTonal(
-                      tooltip: paused ? 'Resume' : 'Pause',
+                      tooltip: (paused ? 'rest.resume' : 'rest.pause').tr(),
                       onPressed: paused ? cubit.resume : cubit.pause,
                       icon: Icon(paused ? Icons.play_arrow : Icons.pause),
                     ),
@@ -151,7 +155,7 @@ class _TimerBody extends StatelessWidget {
                   const SizedBox(width: AppSpacing.xs),
                   TextButton(
                     onPressed: finished ? cubit.dismiss : cubit.skip,
-                    child: Text(finished ? 'Done' : 'Skip'),
+                    child: Text((finished ? 'rest.done' : 'rest.skip').tr()),
                   ),
                 ],
               ),

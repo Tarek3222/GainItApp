@@ -1,3 +1,5 @@
+import 'package:easy_localization/easy_localization.dart';
+
 import '../../../../core/domain/entities/program.dart';
 import '../../../../core/domain/services/media_store.dart';
 import '../../../../core/presentation/action_outcome.dart';
@@ -24,9 +26,13 @@ class ExerciseDetailsCubit extends StreamViewCubit<ExerciseDetails> {
     required this._removeMedia,
     required this._archive,
     required this._restore,
+    this.languageCode = 'en',
   });
 
   final String exerciseId;
+
+  /// Language of the research guide.
+  final String languageCode;
   final WatchExerciseDetailsUseCase _watchDetails;
   final AttachExerciseMediaUseCase _attachMedia;
   final RemoveExerciseMediaUseCase _removeMedia;
@@ -34,7 +40,8 @@ class ExerciseDetailsCubit extends StreamViewCubit<ExerciseDetails> {
   final RestoreExerciseUseCase _restore;
 
   @override
-  Stream<ApiResult<ExerciseDetails>> source() => _watchDetails(exerciseId);
+  Stream<ApiResult<ExerciseDetails>> source() =>
+      _watchDetails(exerciseId, languageCode: languageCode);
 
   Future<ActionOutcome<void>> attachMedia(
     ExerciseMediaKind kind,
@@ -80,7 +87,7 @@ class ExerciseEditorCubit extends FutureViewCubit<Exercise?> {
     // Editing: never fall back to creating a copy if the original hasn't
     // loaded yet.
     if (exerciseId != null && current is! ViewLoaded<Exercise?>) {
-      return const ActionFailed('Still loading. Please try again.');
+      return ActionFailed('common.stillLoading'.tr());
     }
     final existing = current is ViewLoaded<Exercise?> ? current.data : null;
     return ActionOutcome.from(await _saveExercise(input, existing: existing));

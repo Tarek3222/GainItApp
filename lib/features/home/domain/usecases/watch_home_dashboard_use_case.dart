@@ -101,9 +101,9 @@ class WatchHomeDashboardUseCase {
     return first;
   }
 
-  static String greetingFor(DateTime now) {
-    if (now.hour < 12) return 'Good morning';
-    if (now.hour < 17) return 'Good afternoon';
-    return 'Good evening';
+  static GreetingTime greetingFor(DateTime now) {
+    if (now.hour < 12) return GreetingTime.morning;
+    if (now.hour < 17) return GreetingTime.afternoon;
+    return GreetingTime.evening;
   }
 }

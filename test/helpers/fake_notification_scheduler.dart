@@ -5,6 +5,11 @@ class FakeNotificationScheduler implements NotificationScheduler {
   FakeNotificationScheduler({this.permissionGranted = true});
 
   bool permissionGranted;
+
+  /// Language the texts would be written in; change it to simulate a new
+  /// app or phone language.
+  @override
+  String textLanguage = 'en';
   var permissionRequests = 0;
 
   /// Goal reminders from the latest schedule call; `null` after a cancel.

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -6,6 +7,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../domain/entities/enums.dart';
 import '../domain/services/notification_scheduler.dart';
+import '../l10n/seed_names.dart';
 
 /// `flutter_local_notifications` implementation of [NotificationScheduler].
 /// Screens never call this directly; use cases do (spec §21).
@@ -20,26 +22,36 @@ class LocalNotificationService implements NotificationScheduler {
   static const _reminderBaseId = 2000;
   static const _goalReminderBaseId = 3000;
 
-  static const _restChannel = AndroidNotificationDetails(
-    'rest_timer',
-    'Rest timer',
-    channelDescription: 'Alerts when your rest period is over.',
-    importance: Importance.high,
-    priority: Priority.high,
-    category: AndroidNotificationCategory.alarm,
-  );
+  // Texts are looked up when a notification is scheduled, so they follow
+  // the app language (channel names update the next time one is posted).
+  static AndroidNotificationDetails get _restChannel =>
+      AndroidNotificationDetails(
+        'rest_timer',
+        'notifications.restChannel'.tr(),
+        channelDescription: 'notifications.restChannelInfo'.tr(),
+        importance: Importance.high,
+        priority: Priority.high,
+        category: AndroidNotificationCategory.alarm,
+      );
 
-  static const _reminderChannel = AndroidNotificationDetails(
-    'workout_reminders',
-    'Workout reminders',
-    channelDescription: 'Reminds you on scheduled training days.',
-  );
+  static AndroidNotificationDetails get _reminderChannel =>
+      AndroidNotificationDetails(
+        'workout_reminders',
+        'notifications.reminderChannel'.tr(),
+        channelDescription: 'notifications.reminderChannelInfo'.tr(),
+      );
 
-  static const _goalChannel = AndroidNotificationDetails(
-    'daily_goals',
-    'Daily goals',
-    channelDescription: 'Reminders for water, steps and your other goals.',
-  );
+  static AndroidNotificationDetails get _goalChannel =>
+      AndroidNotificationDetails(
+        'daily_goals',
+        'notifications.goalChannel'.tr(),
+        channelDescription: 'notifications.goalChannelInfo'.tr(),
+      );
+
+  /// Texts come from the app's translations, which follow the app language
+  /// (`Intl.defaultLocale` is set from it).
+  @override
+  String get textLanguage => Intl.defaultLocale ?? 'en';
 
   Future<void>? _init;
 
@@ -114,13 +126,13 @@ class LocalNotificationService implements NotificationScheduler {
     // Live countdown in the shade while the app is in the background.
     await _plugin.show(
       id: _restCountdownId,
-      title: 'Resting',
-      body: 'Next: $exerciseName',
+      title: 'notifications.resting'.tr(),
+      body: 'notifications.next'.tr(namedArgs: {'exercise': exerciseName}),
       notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           'rest_countdown',
-          'Rest countdown',
-          channelDescription: 'Shows the remaining rest time.',
+          'notifications.countdownChannel'.tr(),
+          channelDescription: 'notifications.countdownChannelInfo'.tr(),
           importance: Importance.low,
           priority: Priority.low,
           ongoing: true,
@@ -137,12 +149,12 @@ class LocalNotificationService implements NotificationScheduler {
 
     await _plugin.zonedSchedule(
       id: _restOverId,
-      title: 'Rest over',
-      body: 'Time for your next set of $exerciseName.',
+      title: 'notifications.restOver'.tr(),
+      body: 'notifications.nextSet'.tr(namedArgs: {'exercise': exerciseName}),
       scheduledDate: tz.TZDateTime.from(endsAt, tz.local),
-      notificationDetails: const NotificationDetails(
+      notificationDetails: NotificationDetails(
         android: _restChannel,
-        iOS: DarwinNotificationDetails(presentSound: true),
+        iOS: const DarwinNotificationDetails(presentSound: true),
       ),
       androidScheduleMode: await _scheduleMode(),
     );
@@ -166,12 +178,14 @@ class LocalNotificationService implements NotificationScheduler {
     for (final day in days) {
       await _plugin.zonedSchedule(
         id: _reminderBaseId + day.weekday,
-        title: 'Workout today',
-        body: '${day.workoutName} is on the plan. Let’s train.',
+        title: 'notifications.workoutToday'.tr(),
+        body: 'notifications.workoutTodayBody'.tr(
+          namedArgs: {'workout': seedName(day.workoutName)},
+        ),
         scheduledDate: _nextInstance(now, day.weekday, minutesOfDay),
-        notificationDetails: const NotificationDetails(
+        notificationDetails: NotificationDetails(
           android: _reminderChannel,
-          iOS: DarwinNotificationDetails(),
+          iOS: const DarwinNotificationDetails(),
         ),
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
@@ -207,9 +221,9 @@ class LocalNotificationService implements NotificationScheduler {
           reminder.minutesOfDay,
           skipToday: reminder.skipToday,
         ),
-        notificationDetails: const NotificationDetails(
+        notificationDetails: NotificationDetails(
           android: _goalChannel,
-          iOS: DarwinNotificationDetails(),
+          iOS: const DarwinNotificationDetails(),
         ),
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         matchDateTimeComponents: repeatsDaily(reminder, defaultTargetPlatform)
@@ -230,14 +244,17 @@ class LocalNotificationService implements NotificationScheduler {
   static (String, String) _goalText(GoalReminder reminder) =>
       switch (reminder.type) {
         DailyGoalType.water => (
-          'Time for some water',
-          'A glass now keeps you on track for today’s goal.',
+          'notifications.waterTitle'.tr(),
+          'notifications.waterBody'.tr(),
         ),
         DailyGoalType.steps => (
-          'Time to move',
-          'A short walk brings you closer to today’s step goal.',
+          'notifications.stepsTitle'.tr(),
+          'notifications.stepsBody'.tr(),
         ),
-        DailyGoalType.custom => (reminder.title, 'Keep going on today’s goal.'),
+        DailyGoalType.custom => (
+          reminder.title,
+          'notifications.customBody'.tr(),
+        ),
       };
 
   /// Whether [reminder] is scheduled as a daily repeat.

@@ -10,25 +10,44 @@ import '../../domain/repositories/exercise_guide_repository.dart';
 typedef AssetLoader = Future<String> Function(String path);
 
 /// Guides bundled as JSON (`assets/exercise_guides/<language>.json`),
-/// keyed by exercise ID. Parsed once and cached.
+/// keyed by exercise ID. Each language is parsed once and cached.
 class ExerciseGuideRepositoryImpl implements ExerciseGuideRepository {
-  ExerciseGuideRepositoryImpl(this._load, {this.languageCode = 'en'});
+  ExerciseGuideRepositoryImpl(this._load);
+
+  static const _fallbackLanguage = 'en';
 
   final AssetLoader _load;
-  final String languageCode;
+  final _guides = <String, Future<Map<String, ExerciseGuide>>>{};
 
-  Future<Map<String, ExerciseGuide>>? _guides;
-
-  String get assetPath => 'assets/exercise_guides/$languageCode.json';
+  static String assetPath(String languageCode) =>
+      'assets/exercise_guides/$languageCode.json';
 
   @override
-  Future<ApiResult<ExerciseGuide?>> guideFor(String exerciseId) async {
+  Future<ApiResult<ExerciseGuide?>> guideFor(
+    String exerciseId, {
+    String languageCode = _fallbackLanguage,
+  }) async {
+    final translated = await _guideIn(languageCode, exerciseId);
+    final found = switch (translated) {
+      ApiSuccess(:final data) => data != null,
+      ApiFailure() => false,
+    };
+    if (languageCode == _fallbackLanguage || found) return translated;
+    // Not translated (or the file is broken): show the English guide.
+    return _guideIn(_fallbackLanguage, exerciseId);
+  }
+
+  Future<ApiResult<ExerciseGuide?>> _guideIn(
+    String languageCode,
+    String exerciseId,
+  ) async {
     try {
-      final guides = await (_guides ??= _parse());
+      final guides = await (_guides[languageCode] ??= _parse(languageCode));
       return ApiSuccess(guides[exerciseId]);
     } on Object catch (error) {
       // A broken asset must not break the exercise screen; retry next time.
-      _guides = null;
+      // The removed future already failed; drop it without rethrowing.
+      _guides.remove(languageCode)?.ignore();
       if (kDebugMode) debugPrint('ExerciseGuideRepository: $error');
       return const ApiFailure(
         UnexpectedFailure('Could not load the exercise guide.'),
@@ -36,8 +55,10 @@ class ExerciseGuideRepositoryImpl implements ExerciseGuideRepository {
     }
   }
 
-  Future<Map<String, ExerciseGuide>> _parse() async {
-    final json = jsonDecode(await _load(assetPath)) as Map<String, dynamic>;
+  Future<Map<String, ExerciseGuide>> _parse(String languageCode) async {
+    final json =
+        jsonDecode(await _load(assetPath(languageCode)))
+            as Map<String, dynamic>;
     final references = (json['references'] as Map<String, dynamic>).map(
       (key, value) => MapEntry(key, value as String),
     );

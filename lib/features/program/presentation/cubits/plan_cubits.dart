@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
+
 import '../../../../core/domain/entities/enums.dart';
 import '../../../../core/domain/entities/program.dart';
 import '../../../../core/presentation/action_outcome.dart';
@@ -94,7 +96,7 @@ class WorkoutDayEditorCubit extends StreamViewCubit<WorkoutOverview> {
   Future<ActionOutcome<void>> _move(int oldIndex, int newIndex) async {
     final current = state;
     if (current is! ViewLoaded<WorkoutOverview>) {
-      return const ActionFailed('Still loading.');
+      return ActionFailed('common.stillLoading'.tr());
     }
     final exercises = [...current.data.exercises];
     if (oldIndex < 0 || oldIndex >= exercises.length) {

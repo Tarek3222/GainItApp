@@ -4,9 +4,11 @@ import 'package:gainit/core/domain/entities/enums.dart';
 import 'package:gainit/core/result/api_result.dart';
 import 'package:gainit/core/result/failures.dart';
 import 'package:gainit/core/services/clock.dart';
+import 'package:gainit/features/daily_goals/domain/usecases/daily_goal_use_cases.dart';
 import 'package:gainit/features/onboarding/domain/entities/onboarding_input.dart';
 import 'package:gainit/features/onboarding/domain/usecases/complete_onboarding_use_case.dart';
 import 'package:gainit/features/onboarding/presentation/cubits/onboarding_cubit.dart';
+import 'package:gainit/features/settings/domain/usecases/settings_use_cases.dart';
 import 'package:gainit/features/startup/domain/entities/startup_status.dart';
 import 'package:gainit/features/startup/domain/usecases/get_startup_status_use_case.dart';
 import 'package:gainit/features/startup/presentation/cubits/splash_cubit.dart';
@@ -19,6 +21,11 @@ class _MockGetStatus extends Mock implements GetStartupStatusUseCase {}
 
 class _MockAbandon extends Mock implements AbandonWorkoutUseCase {}
 
+class _MockSyncReminders extends Mock implements SyncGoalRemindersUseCase {}
+
+class _MockSyncWorkoutReminders extends Mock
+    implements SyncWorkoutRemindersUseCase {}
+
 class _MockCompleteOnboarding extends Mock
     implements CompleteOnboardingUseCase {}
 
@@ -26,14 +33,37 @@ void main() {
   group('SplashCubit', () {
     late _MockGetStatus getStatus;
     late _MockAbandon abandon;
+    late _MockSyncReminders syncReminders;
+    late _MockSyncWorkoutReminders syncWorkoutReminders;
 
     setUp(() {
       getStatus = _MockGetStatus();
       abandon = _MockAbandon();
+      syncReminders = _MockSyncReminders();
+      when(
+        () => syncReminders(completedToday: any(named: 'completedToday')),
+      ).thenAnswer((_) async => voidSuccess);
+      syncWorkoutReminders = _MockSyncWorkoutReminders();
+      when(() => syncWorkoutReminders()).thenAnswer((_) async => voidSuccess);
     });
 
-    SplashCubit build() =>
-        SplashCubit(getStatus: getStatus, abandonWorkout: abandon);
+    SplashCubit build() => SplashCubit(
+      getStatus: getStatus,
+      abandonWorkout: abandon,
+      syncReminders: syncReminders,
+      syncWorkoutReminders: syncWorkoutReminders,
+    );
+
+    test('refreshes goal and workout reminders on launch', () async {
+      when(() => getStatus()).thenAnswer(
+        (_) async => const ApiSuccess(StartupStatus(hasProfile: false)),
+      );
+
+      await build().check();
+
+      verify(() => syncReminders()).called(1);
+      verify(() => syncWorkoutReminders()).called(1);
+    });
 
     blocTest<SplashCubit, SplashState>(
       'routes to onboarding on first launch',

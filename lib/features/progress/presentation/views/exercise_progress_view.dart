@@ -1,8 +1,10 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../app/theme/app_typography.dart';
+import '../../../../core/l10n/enum_labels.dart';
 import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
@@ -23,10 +25,10 @@ class ExerciseProgressTab extends StatelessWidget {
     return ViewStateBuilder<ExerciseProgressCubit, ExerciseProgress>(
       onRetry: (cubit) => cubit.load(),
       builder: (context, progress) => progress.isEmpty
-          ? const EmptyState(
+          ? EmptyState(
               icon: Icons.show_chart,
-              title: 'No history yet',
-              message: 'Complete this exercise in a workout to see progress.',
+              title: 'progress.noHistory'.tr(),
+              message: 'progress.noHistoryHint'.tr(),
             )
           : _Body(progress: progress),
     );
@@ -63,14 +65,17 @@ class _BodyState extends State<_Body> {
         Row(
           children: [
             _Stat(
-              label: 'Best weight',
+              label: 'progress.bestWeight'.tr(),
               value: context.units.weight(progress.bestWeight!),
             ),
             const SizedBox(width: AppSpacing.sm),
-            _Stat(label: 'Best reps', value: '${progress.bestReps}'),
+            _Stat(
+              label: 'progress.bestReps'.tr(),
+              value: '${progress.bestReps}',
+            ),
             const SizedBox(width: AppSpacing.sm),
             _Stat(
-              label: 'Est. 1RM',
+              label: 'progress.est1rm'.tr(),
               value: context.units.weight(progress.bestOneRepMax!),
             ),
           ],
@@ -82,11 +87,23 @@ class _BodyState extends State<_Body> {
             children: [
               SegmentedButton<_Metric>(
                 showSelectedIcon: false,
-                segments: const [
-                  ButtonSegment(value: _Metric.oneRepMax, label: Text('1RM')),
-                  ButtonSegment(value: _Metric.topWeight, label: Text('Load')),
-                  ButtonSegment(value: _Metric.reps, label: Text('Reps')),
-                  ButtonSegment(value: _Metric.volume, label: Text('Volume')),
+                segments: [
+                  ButtonSegment(
+                    value: _Metric.oneRepMax,
+                    label: Text('progress.metric.oneRepMax'.tr()),
+                  ),
+                  ButtonSegment(
+                    value: _Metric.topWeight,
+                    label: Text('progress.metric.load'.tr()),
+                  ),
+                  ButtonSegment(
+                    value: _Metric.reps,
+                    label: Text('progress.metric.reps'.tr()),
+                  ),
+                  ButtonSegment(
+                    value: _Metric.volume,
+                    label: Text('progress.metric.volume'.tr()),
+                  ),
                 ],
                 selected: {_metric},
                 onSelectionChanged: (s) => setState(() => _metric = s.first),
@@ -110,7 +127,7 @@ class _BodyState extends State<_Body> {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        const SectionLabel('Recent sessions'),
+        SectionLabel('progress.recentSessions'.tr()),
         for (final session in progress.sessions.take(10))
           ListTile(
             contentPadding: EdgeInsets.zero,

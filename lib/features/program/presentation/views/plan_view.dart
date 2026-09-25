@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -5,6 +6,7 @@ import '../../../../app/router/route_paths.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../core/domain/training/schedule_resolver.dart';
+import '../../../../core/l10n/seed_names.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/state_views.dart';
@@ -19,10 +21,10 @@ class PlanView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Plan'),
+        title: Text('plan.title'.tr()),
         actions: [
           IconButton(
-            tooltip: 'Exercise library',
+            tooltip: 'plan.exerciseLibrary'.tr(),
             icon: const Icon(Icons.fitness_center),
             onPressed: () => context.push(RoutePaths.exercises),
           ),
@@ -33,12 +35,21 @@ class PlanView extends StatelessWidget {
         builder: (context, plan) => PageBody(
           children: [
             Text(
-              'Week ${plan.weekNumber} · ${plan.programName}',
+              'plan.weekOf'.tr(
+                namedArgs: {
+                  'week': '${plan.weekNumber}',
+                  'program': seedName(plan.programName),
+                },
+              ),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(
-              '${plan.completedWorkouts} of ${plan.plannedWorkouts} '
-              'workouts done this week',
+              'plan.doneThisWeek'.tr(
+                namedArgs: {
+                  'done': '${plan.completedWorkouts}',
+                  'planned': '${plan.plannedWorkouts}',
+                },
+              ),
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: AppSpacing.md),
@@ -63,26 +74,48 @@ class PlanDayCard extends StatelessWidget {
     final theme = Theme.of(context);
     final semantic = context.semanticColors;
     final (label, color, icon) = switch (item.status) {
-      DayStatus.completed => ('Done', semantic.success, Icons.check_circle),
+      DayStatus.completed => (
+        'plan.status.done'.tr(),
+        semantic.success,
+        Icons.check_circle,
+      ),
       DayStatus.today => (
-        'Today',
+        'plan.status.today'.tr(),
         theme.colorScheme.primary,
         Icons.play_circle_fill,
       ),
-      DayStatus.upcoming => ('Upcoming', semantic.mutedText, Icons.schedule),
-      DayStatus.missed => ('Missed', semantic.warning, Icons.error_outline),
-      DayStatus.rest => ('Rest', semantic.mutedText, Icons.bedtime_outlined),
+      DayStatus.upcoming => (
+        'plan.status.upcoming'.tr(),
+        semantic.mutedText,
+        Icons.schedule,
+      ),
+      DayStatus.missed => (
+        'plan.status.missed'.tr(),
+        semantic.warning,
+        Icons.error_outline,
+      ),
+      DayStatus.rest => (
+        'plan.status.rest'.tr(),
+        semantic.mutedText,
+        Icons.bedtime_outlined,
+      ),
       DayStatus.beforeStart => (
-        'Not started',
+        'plan.status.notStarted'.tr(),
         semantic.mutedText,
         Icons.remove_circle_outline,
       ),
     };
     final isWorkout = item.day.isWorkout;
     final subtitle = isWorkout
-        ? '${item.exerciseCount} exercises · ${item.totalSets} sets'
-              '${item.lastCompletedAt == null ? '' : ' · last ${Formatters.shortDate(item.lastCompletedAt!)}'}'
-        : 'Recovery day';
+        ? [
+            'common.exercises'.plural(item.exerciseCount),
+            'common.sets'.plural(item.totalSets),
+            if (item.lastCompletedAt case final last?)
+              'plan.lastDone'.tr(
+                namedArgs: {'date': Formatters.shortDate(last)},
+              ),
+          ].join(' · ')
+        : 'plan.recoveryDay'.tr();
 
     return AppCard(
       // Rest days have nothing to preview, so they open the editor.
@@ -112,7 +145,10 @@ class PlanDayCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.day.name, style: theme.textTheme.titleMedium),
+                Text(
+                  seedName(item.day.name),
+                  style: theme.textTheme.titleMedium,
+                ),
                 const SizedBox(height: AppSpacing.xxs),
                 Text(subtitle, style: theme.textTheme.bodySmall),
               ],
@@ -128,7 +164,9 @@ class PlanDayCard extends StatelessWidget {
             ],
           ),
           IconButton(
-            tooltip: 'Edit ${item.day.name}',
+            tooltip: 'plan.editDay'.tr(
+              namedArgs: {'day': seedName(item.day.name)},
+            ),
             icon: const Icon(Icons.edit_outlined),
             onPressed: () => context.push(RoutePaths.editPlanDay(item.day.id)),
           ),

@@ -1,23 +1,29 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'app/app.dart';
 import 'app/router/app_router.dart';
 import 'app/theme/app_theme.dart';
 import 'core/di/injection.dart';
+import 'core/l10n/app_locales.dart';
 import 'core/services/id_generator.dart';
 import 'core/services/local_media_store.dart';
 import 'core/services/local_notification_service.dart';
 import 'core/storage/hive_storage.dart';
+import 'core/storage/local_data_sources/settings_local_data_source.dart';
 import 'core/storage/storage_bootstrap.dart';
 import 'core/widgets/state_views.dart';
-import 'features/daily_goals/domain/usecases/daily_goal_use_cases.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
+  // Date names for every language, so dates format correctly anywhere.
+  await initializeDateFormatting();
 
   try {
     await Hive.initFlutter('gainit');
@@ -43,17 +49,35 @@ Future<void> main() async {
       notifications: notifications,
       media: media,
     );
-    // Goal reminders skip goals already reached today; refresh them on
-    // every launch. Failures are reported inside and never block startup.
-    unawaited(getIt<SyncGoalRemindersUseCase>()());
-    runApp(GainItApp(router: createRouter()));
+    final language = SettingsLocalDataSource(storage).settings().languageCode;
+    runApp(
+      _localized(
+        startLocale: AppLocales.fromCode(language),
+        child: GainItApp(router: createRouter()),
+      ),
+    );
   } on Object catch (error, stackTrace) {
     FlutterError.reportError(
       FlutterErrorDetails(exception: error, stack: stackTrace),
     );
-    runApp(const _StartupFailureApp());
+    runApp(_localized(child: const _StartupFailureApp()));
   }
 }
+
+/// The language is kept in GainIt's own settings (so it follows the rest
+/// of the user's data), not in easy_localization's storage.
+Widget _localized({required Widget child, Locale? startLocale}) =>
+    EasyLocalization(
+      supportedLocales: AppLocales.supported,
+      path: AppLocales.path,
+      fallbackLocale: AppLocales.fallback,
+      startLocale: startLocale,
+      saveLocale: false,
+      useOnlyLangCode: true,
+      // Arabic has six plural forms.
+      ignorePluralRules: false,
+      child: child,
+    );
 
 /// Shown only if local storage cannot be opened at all.
 class _StartupFailureApp extends StatelessWidget {
@@ -63,12 +87,10 @@ class _StartupFailureApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: AppTheme.dark,
-      home: const Scaffold(
-        body: ErrorView(
-          message:
-              'GainIt could not open its local data. Please restart the app.',
-        ),
-      ),
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
+      home: Scaffold(body: ErrorView(message: 'startup.storageFailed'.tr())),
     );
   }
 }

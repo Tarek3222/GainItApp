@@ -19,6 +19,7 @@ class SettingsLocalDataSource {
     }
 
     final minutes = box.get(SettingsKeys.reminderMinutesOfDay);
+    final language = box.get(SettingsKeys.languageCode);
     return AppSettings(
       autoStartRestTimer: flag(
         SettingsKeys.autoStartRestTimer,
@@ -40,6 +41,11 @@ class SettingsLocalDataSource {
       reminderMinutesOfDay: minutes is int && minutes >= 0 && minutes < 1440
           ? minutes
           : _defaults.reminderMinutesOfDay,
+      languageCode:
+          language is String &&
+              AppSettings.supportedLanguageCodes.contains(language)
+          ? language
+          : null,
     );
   }
 
@@ -53,6 +59,12 @@ class SettingsLocalDataSource {
       SettingsKeys.remindersEnabled: settings.remindersEnabled,
       SettingsKeys.reminderMinutesOfDay: settings.reminderMinutesOfDay,
     });
+    final language = settings.languageCode;
+    if (language == null) {
+      await _storage.settings.delete(SettingsKeys.languageCode);
+    } else {
+      await _storage.settings.put(SettingsKeys.languageCode, language);
+    }
   }
 
   Stream<AppSettings> watch() => watchTriggers(triggers, settings);

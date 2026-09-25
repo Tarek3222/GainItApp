@@ -31,6 +31,10 @@ abstract interface class NotificationScheduler {
   /// most of them, the rest timer and workout reminders use the others.
   static const maxGoalReminders = 48;
 
+  /// Language code the notification texts are written in right now.
+  /// Reminders scheduled in another language need rescheduling.
+  String get textLanguage;
+
   /// Shows a live countdown and alerts when rest is over.
   Future<void> scheduleRestOver({
     required DateTime endsAt,

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,8 @@ import '../../../../app/router/route_paths.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../core/domain/training/performance_comparator.dart';
+import '../../../../core/l10n/enum_labels.dart';
+import '../../../../core/l10n/seed_names.dart';
 import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
@@ -56,18 +59,18 @@ class _SummaryBody extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'Workout Complete',
+                'summary.complete'.tr(),
                 style: theme.textTheme.headlineMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                summary.workoutName,
+                seedName(summary.workoutName),
                 style: theme.textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),
               Text(
-                '${summary.workingSets} working sets · '
+                '${'common.workingSets'.plural(summary.workingSets)} · '
                 '${Formatters.duration(summary.duration)}',
                 style: theme.textTheme.bodySmall,
                 textAlign: TextAlign.center,
@@ -78,7 +81,7 @@ class _SummaryBody extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SectionLabel('Volume'),
+                      SectionLabel('summary.volume'.tr()),
                       for (final entry in summary.volume.entries)
                         Padding(
                           padding: const EdgeInsets.symmetric(
@@ -88,7 +91,7 @@ class _SummaryBody extends StatelessWidget {
                             children: [
                               Expanded(child: Text(entry.key.label)),
                               Text(
-                                '${entry.value} sets',
+                                'common.sets'.plural(entry.value),
                                 style: theme.textTheme.titleSmall,
                               ),
                             ],
@@ -103,7 +106,7 @@ class _SummaryBody extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SectionLabel('Progress'),
+                      SectionLabel('summary.progress'.tr()),
                       for (final line in summary.lines)
                         ProgressLineTile(line: line),
                     ],
@@ -118,7 +121,7 @@ class _SummaryBody extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.md),
             child: FilledButton(
               onPressed: () => context.go(RoutePaths.home),
-              child: const Text('Finish'),
+              child: Text('common.finish'.tr()),
             ),
           ),
         ),
@@ -146,24 +149,24 @@ class ProgressLineTile extends StatelessWidget {
       ProgressOutcome.repsIncreased => (
         Icons.check_circle,
         semantic.success,
-        '+${c.repsDelta} rep${c.repsDelta == 1 ? '' : 's'}',
+        'summary.repsUp'.plural(c.repsDelta),
       ),
       ProgressOutcome.maintained => (
         Icons.arrow_forward,
         semantic.mutedText,
-        'maintained',
+        'summary.maintained'.tr(),
       ),
       ProgressOutcome.regressed => (
         Icons.arrow_downward,
         semantic.warning,
         c.weightDelta < 0
             ? context.units.signedWeight(c.weightDelta)
-            : '${c.repsDelta} reps',
+            : 'summary.repsDown'.tr(namedArgs: {'n': '${c.repsDelta}'}),
       ),
       ProgressOutcome.firstTime => (
         Icons.fiber_new_outlined,
         semantic.mutedText,
-        'first time',
+        'summary.firstTime'.tr(),
       ),
     };
     final current = line.current;
@@ -179,7 +182,7 @@ class ProgressLineTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(line.exerciseName),
+                  Text(seedName(line.exerciseName)),
                   Text(
                     '${context.units.weight(current.topWeight)} · '
                     '${Formatters.repsList(current.sets.map((s) => s.reps))}',

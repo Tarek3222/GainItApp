@@ -481,6 +481,21 @@ void main() {
       expect(scheduler.goalScheduleCalls, 1);
     });
 
+    test('a new app or phone language reschedules the same plan', () async {
+      await source.saveGoal(
+        (await _goal(
+          source,
+          DailyGoalLocalDataSource.waterGoalId,
+        )).copyWith(reminderEnabled: true),
+      );
+      await sync();
+
+      scheduler.textLanguage = 'ar';
+      await sync();
+
+      expect(scheduler.goalScheduleCalls, 2);
+    });
+
     test('a plan that skipped today is rescheduled the next day', () async {
       await source.saveGoal(
         (await _goal(

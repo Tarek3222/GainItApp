@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +9,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../core/domain/entities/enums.dart';
 import '../../../../core/domain/services/media_store.dart';
+import '../../../../core/l10n/seed_names.dart';
 import '../../../../core/presentation/action_outcome.dart';
 import '../../../../core/presentation/view_state.dart';
 import '../../../../core/utils/formatters.dart';
@@ -31,22 +33,19 @@ class ExerciseDetailView extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Remove $name?'),
-        content: const Text(
-          'It will be removed from the library and from every plan day. '
-          'Your past workouts and progress stay.',
-        ),
+        title: Text('exercise.removeTitle'.tr(namedArgs: {'name': name})),
+        content: Text('exercise.removeMessage'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(
               foregroundColor: context.semanticColors.danger,
             ),
-            child: const Text('Remove'),
+            child: Text('common.remove'.tr()),
           ),
         ],
       ),
@@ -75,7 +74,7 @@ class ExerciseDetailView extends StatelessWidget {
                 String
               >(
                 selector: (state) => switch (state) {
-                  ViewLoaded(:final data) => data.exercise.name,
+                  ViewLoaded(:final data) => seedName(data.exercise.name),
                   _ => '',
                 },
                 builder: (_, name) => Text(name),
@@ -89,7 +88,7 @@ class ExerciseDetailView extends StatelessWidget {
               selector: (state) => switch (state) {
                 ViewLoaded(:final data) => (
                   id: data.exercise.id,
-                  name: data.exercise.name,
+                  name: seedName(data.exercise.name),
                   archived: data.exercise.isArchived,
                 ),
                 _ => null,
@@ -101,7 +100,7 @@ class ExerciseDetailView extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          tooltip: 'Edit exercise',
+                          tooltip: 'exercise.edit'.tr(),
                           icon: const Icon(Icons.edit_outlined),
                           onPressed: () => context.push(
                             RoutePaths.editExercise(exercise.id),
@@ -109,10 +108,10 @@ class ExerciseDetailView extends StatelessWidget {
                         ),
                         PopupMenuButton<String>(
                           onSelected: (_) => _archive(context, exercise.name),
-                          itemBuilder: (_) => const [
+                          itemBuilder: (_) => [
                             PopupMenuItem(
                               value: 'archive',
-                              child: Text('Remove from library'),
+                              child: Text('exercise.removeFromLibrary'.tr()),
                             ),
                           ],
                         ),
@@ -120,10 +119,10 @@ class ExerciseDetailView extends StatelessWidget {
                     ),
             ),
           ],
-          bottom: const TabBar(
+          bottom: TabBar(
             tabs: [
-              Tab(text: 'Guide'),
-              Tab(text: 'Progress'),
+              Tab(text: 'exercise.guideTab'.tr()),
+              Tab(text: 'exercise.progressTab'.tr()),
             ],
           ),
         ),
@@ -150,7 +149,7 @@ class _GuideTab extends StatelessWidget {
     final outcome = await context.read<ExerciseDetailsCubit>().restore();
     if (!context.mounted) return;
     showMessage(context, switch (outcome) {
-      ActionDone() => 'Back in your library.',
+      ActionDone() => 'exercise.restored'.tr(),
       ActionFailed(:final message) => message,
     });
   }
@@ -165,7 +164,7 @@ class _GuideTab extends StatelessWidget {
     return PageBody(
       eager: true,
       children: [
-        const SectionLabel('Target muscles'),
+        SectionLabel('common.targetMuscles'.tr()),
         MuscleChips(
           primary: [exercise.primaryMuscle],
           secondary: exercise.secondaryMuscles,
@@ -174,12 +173,17 @@ class _GuideTab extends StatelessWidget {
         Text(
           [
             if (exercise.category == ExerciseCategory.compound)
-              'Compound (several joints)'
+              'exercise.compound'.tr()
             else
-              'Isolation (one joint)',
+              'exercise.isolation'.tr(),
             if (details.usedInDays.isNotEmpty)
-              'In your plan: '
-                  '${details.usedInDays.map((d) => Formatters.weekday(d.weekday)).join(', ')}',
+              'exercise.inYourPlan'.tr(
+                namedArgs: {
+                  'days': details.usedInDays
+                      .map((d) => Formatters.weekday(d.weekday))
+                      .join('common.listSeparator'.tr()),
+                },
+              ),
           ].join(' · '),
           style: theme.textTheme.bodySmall,
         ),
@@ -190,7 +194,7 @@ class _GuideTab extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Removed from your library. Past workouts still show it.',
+                    'exercise.archivedNote'.tr(),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: context.semanticColors.warning,
                     ),
@@ -198,7 +202,7 @@ class _GuideTab extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: () => _restore(context),
-                  child: const Text('Restore'),
+                  child: Text('exercise.restore'.tr()),
                 ),
               ],
             ),
@@ -208,7 +212,7 @@ class _GuideTab extends StatelessWidget {
         _MediaSection(details: details),
         if (notes != null && notes.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.lg),
-          const SectionLabel('Your notes'),
+          SectionLabel('exercise.yourNotes'.tr()),
           AppCard(child: Text(notes)),
         ],
         const SizedBox(height: AppSpacing.lg),
@@ -216,8 +220,9 @@ class _GuideTab extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child: Text(
-              'This guide was written for "${guide.exerciseName}". '
-              'You renamed the exercise, so check it still applies.',
+              'exercise.guideRenamed'.tr(
+                namedArgs: {'name': seedName(guide.exerciseName)},
+              ),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: context.semanticColors.warning,
               ),
@@ -228,17 +233,17 @@ class _GuideTab extends StatelessWidget {
         else if (details.guideUnavailable)
           EmptyState(
             icon: Icons.cloud_off_outlined,
-            title: "The guide couldn't be loaded",
+            title: 'exercise.guideFailed'.tr(),
             action: OutlinedButton(
               onPressed: () => context.read<ExerciseDetailsCubit>().start(),
-              child: const Text('Try again'),
+              child: Text('exercise.tryAgain'.tr()),
             ),
           )
         else if (notes == null || notes.isEmpty)
-          const EmptyState(
+          EmptyState(
             icon: Icons.menu_book_outlined,
-            title: 'No guide yet',
-            message: 'Add your own cues with Edit, or attach a video.',
+            title: 'exercise.noGuide'.tr(),
+            message: 'exercise.noGuideHint'.tr(),
           ),
       ],
     );
@@ -256,12 +261,15 @@ class _GuideContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _Bullets(title: 'Setup', lines: guide.setup),
-        _Bullets(title: 'How to do it', lines: guide.execution),
-        _Bullets(title: 'Get the most from it', lines: guide.tips),
-        _Bullets(title: 'Common mistakes', lines: guide.mistakes),
+        _Bullets(title: 'exercise.guide.setup'.tr(), lines: guide.setup),
+        _Bullets(
+          title: 'exercise.guide.execution'.tr(),
+          lines: guide.execution,
+        ),
+        _Bullets(title: 'exercise.guide.tips'.tr(), lines: guide.tips),
+        _Bullets(title: 'exercise.guide.mistakes'.tr(), lines: guide.mistakes),
         if (guide.evidence.isNotEmpty) ...[
-          const SectionLabel('What research says'),
+          SectionLabel('exercise.guide.research'.tr()),
           for (final e in guide.evidence)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -284,7 +292,7 @@ class _GuideContent extends StatelessWidget {
                           ),
                         ),
                         IconButton(
-                          tooltip: 'Copy citation',
+                          tooltip: 'exercise.copyCitation'.tr(),
                           visualDensity: VisualDensity.compact,
                           icon: const Icon(Icons.copy, size: 18),
                           onPressed: () async {
@@ -294,8 +302,7 @@ class _GuideContent extends StatelessWidget {
                             if (context.mounted) {
                               showMessage(
                                 context,
-                                'Citation copied. Paste it into a search to '
-                                'find the study.',
+                                'exercise.citationCopied'.tr(),
                               );
                             }
                           },
@@ -366,7 +373,9 @@ class _MediaSection extends StatelessWidget {
               leading: Icon(
                 isVideo ? Icons.videocam_outlined : Icons.photo_camera_outlined,
               ),
-              title: Text(isVideo ? 'Record video' : 'Take photo'),
+              title: Text(
+                (isVideo ? 'exercise.recordVideo' : 'exercise.takePhoto').tr(),
+              ),
               onTap: () => Navigator.pop(context, MediaSource.camera),
             ),
             ListTile(
@@ -375,7 +384,7 @@ class _MediaSection extends StatelessWidget {
                     ? Icons.video_library_outlined
                     : Icons.photo_library_outlined,
               ),
-              title: const Text('Choose from gallery'),
+              title: Text('exercise.chooseFromGallery'.tr()),
               onTap: () => Navigator.pop(context, MediaSource.gallery),
             ),
           ],
@@ -401,7 +410,7 @@ class _MediaSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionLabel('Photos & video'),
+        SectionLabel('exercise.media'.tr()),
         ExerciseMediaGallery(
           details: details,
           editable: !details.exercise.isArchived,

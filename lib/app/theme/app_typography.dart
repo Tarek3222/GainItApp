@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
 /// Typography tokens. Poppins is bundled for headings and key numbers;
-/// body text falls back to the platform font for readability.
+/// body text falls back to the platform font for readability. Neither has
+/// Arabic letters, so every style falls back to the bundled Cairo font.
 abstract final class AppTypography {
   static const headingFamily = 'Poppins';
+  static const arabicFamily = 'Cairo';
+  static const _fallback = [arabicFamily];
 
   static TextTheme textTheme(Color text, Color muted) {
     const base = Typography.englishLike2021;
@@ -56,12 +59,14 @@ abstract final class AppTypography {
             letterSpacing: 1.1,
             color: muted,
           ),
-        );
+        )
+        .apply(fontFamilyFallback: _fallback);
   }
 
   /// Large numerals for weight / reps in the active workout.
   static const TextStyle metricLarge = TextStyle(
     fontFamily: headingFamily,
+    fontFamilyFallback: _fallback,
     fontSize: 28,
     fontWeight: FontWeight.w700,
     fontFeatures: [FontFeature.tabularFigures()],
@@ -69,6 +74,7 @@ abstract final class AppTypography {
 
   static const TextStyle metricMedium = TextStyle(
     fontFamily: headingFamily,
+    fontFamilyFallback: _fallback,
     fontSize: 20,
     fontWeight: FontWeight.w600,
     fontFeatures: [FontFeature.tabularFigures()],
@@ -76,6 +82,7 @@ abstract final class AppTypography {
 
   static const TextStyle timer = TextStyle(
     fontFamily: headingFamily,
+    fontFamilyFallback: _fallback,
     fontSize: 56,
     fontWeight: FontWeight.w700,
     fontFeatures: [FontFeature.tabularFigures()],

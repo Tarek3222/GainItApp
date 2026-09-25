@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gainit/app/app.dart';
@@ -14,6 +15,7 @@ import 'package:hive_ce/hive_ce.dart';
 import '../helpers/fake_media_store.dart';
 import '../helpers/fake_step_counter.dart';
 import '../helpers/fixed_clock.dart';
+import '../helpers/localization.dart';
 import '../helpers/scroll.dart';
 
 class _NoDayChanges implements DayChangeSource {
@@ -22,6 +24,13 @@ class _NoDayChanges implements DayChangeSource {
 }
 
 class _FakeNotifications implements NotificationScheduler {
+  /// A goal-reminder text as the real service would write it at each
+  /// schedule or cancel, to check reminders follow the app language.
+  final goalTextsAtSync = <String>[];
+
+  @override
+  String get textLanguage => Intl.defaultLocale ?? 'en';
+
   @override
   Future<void> cancelRestOver() async {}
 
@@ -29,10 +38,12 @@ class _FakeNotifications implements NotificationScheduler {
   Future<void> cancelWorkoutReminders() async {}
 
   @override
-  Future<void> scheduleGoalReminders(List<GoalReminder> reminders) async {}
+  Future<void> scheduleGoalReminders(List<GoalReminder> reminders) async =>
+      goalTextsAtSync.add('notifications.waterTitle'.tr());
 
   @override
-  Future<void> cancelGoalReminders() async {}
+  Future<void> cancelGoalReminders() async =>
+      goalTextsAtSync.add('notifications.waterTitle'.tr());
 
   @override
   Future<bool> requestPermission() async => true;
@@ -54,15 +65,17 @@ class _FakeNotifications implements NotificationScheduler {
 /// onboarding → home → start workout → log set → finish → summary → tabs.
 void main() {
   late HiveStorage storage;
+  late _FakeNotifications notifications;
 
   setUp(() async {
     storage = await HiveStorage.open(inMemory: true);
+    notifications = _FakeNotifications();
     // Monday evening → "Legs" is today's workout.
     final clock = FixedClock(DateTime(2026, 3, 2, 18));
     await StorageBootstrap.run(storage, now: clock.now());
     configureDependencies(
       storage: storage,
-      notifications: _FakeNotifications(),
+      notifications: notifications,
       clock: clock,
       dayChanges: _NoDayChanges(),
       media: FakeMediaStore(),
@@ -79,8 +92,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(420, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(GainItApp(router: createRouter()));
-    await tester.pumpAndSettle();
+    await pumpLocalizedApp(tester, GainItApp(router: createRouter()));
 
     // Onboarding (first launch).
     expect(find.text('Welcome to GainIt'), findsOneWidget);
@@ -169,9 +181,20 @@ void main() {
     expect(find.textContaining('170 cm · 25 years'), findsOneWidget);
 
     // Switching to imperial changes every displayed weight and height.
+    final profileList = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('lb · ft'),
+      200,
+      scrollable: profileList,
+    );
     await tester.tap(find.text('lb · ft'));
     await tester.pumpAndSettle();
     expect(storage.profile.values.single.unitSystem, UnitSystem.imperial);
+    await tester.scrollUntilVisible(
+      find.textContaining('5′7″ · 25 years'),
+      -200,
+      scrollable: profileList,
+    );
     expect(find.textContaining('5′7″ · 25 years'), findsOneWidget);
     await tester.tap(find.text('Home'));
     await tester.pumpAndSettle();
@@ -185,8 +208,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     // First run: onboard, start, log one set, then "kill" the app.
-    await tester.pumpWidget(GainItApp(router: createRouter()));
-    await tester.pumpAndSettle();
+    await pumpLocalizedApp(tester, GainItApp(router: createRouter()));
     await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Sam');
     await confirmPickers(tester, ['Use 170 cm', 'Use 70 kg', 'Use 25 years']);
     await scrollPageToEnd(tester);
@@ -204,8 +226,7 @@ void main() {
     // Relaunch with a fresh widget tree (same storage).
     await tester.pumpWidget(const SizedBox());
     await tester.pumpAndSettle();
-    await tester.pumpWidget(GainItApp(router: createRouter()));
-    await tester.pumpAndSettle();
+    await pumpLocalizedApp(tester, GainItApp(router: createRouter()));
 
     expect(find.text('Resume workout?'), findsOneWidget);
     expect(find.text('1 of 20 sets completed'), findsOneWidget);
@@ -280,8 +301,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(420, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(GainItApp(router: createRouter()));
-    await tester.pumpAndSettle();
+    await pumpLocalizedApp(tester, GainItApp(router: createRouter()));
     await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Sam');
     await confirmPickers(tester, ['Use 170 cm', 'Use 70 kg', 'Use 25 years']);
     await scrollPageToEnd(tester);
@@ -350,5 +370,50 @@ void main() {
       storage.exercises.values.where((e) => e.isCustom).single.name,
       'Nordic Curl',
     );
+  });
+
+  testWidgets('the app can switch to Arabic and lays out right to left', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(420, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    addTearDown(loadTestTranslations);
+
+    await pumpLocalizedApp(tester, GainItApp(router: createRouter()));
+    await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Sam');
+    await confirmPickers(tester, ['Use 170 cm', 'Use 70 kg', 'Use 25 years']);
+    await scrollPageToEnd(tester);
+    await tester.tap(find.text('Start training'));
+    await tester.pumpAndSettle();
+
+    // Profile → Language → العربية.
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Language'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.byType(DropdownButton<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('العربية').last);
+    await tester.pumpAndSettle();
+
+    expect(storage.settings.get('language_code'), 'ar');
+    expect(find.text('الرئيسية'), findsOneWidget);
+    // Texts already on screen update too.
+    expect(find.text('الملف الشخصي'), findsWidgets);
+    // Reminders were rescheduled after the app switched to Arabic.
+    expect(notifications.goalTextsAtSync.last, 'وقت شرب الماء');
+    expect(
+      Directionality.of(tester.element(find.text('الرئيسية'))),
+      TextDirection.rtl,
+    );
+
+    // Built-in names follow the language; Monday's workout is "Legs".
+    await tester.tap(find.text('الرئيسية'));
+    await tester.pumpAndSettle();
+    expect(find.text('أرجل'), findsOneWidget);
+    expect(find.text('ابدأ الجلسة'), findsOneWidget);
   });
 }
