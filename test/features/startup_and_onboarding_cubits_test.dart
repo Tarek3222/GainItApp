@@ -47,12 +47,49 @@ void main() {
       when(() => syncWorkoutReminders()).thenAnswer((_) async => voidSuccess);
     });
 
-    SplashCubit build() => SplashCubit(
+    SplashCubit build({Duration minimumDisplay = Duration.zero}) => SplashCubit(
       getStatus: getStatus,
       abandonWorkout: abandon,
       syncReminders: syncReminders,
       syncWorkoutReminders: syncWorkoutReminders,
+      minimumDisplay: minimumDisplay,
     );
+
+    // testWidgets for its fake clock: no real waiting, no timing flakes.
+    testWidgets('stays on the splash for the minimum time on launch', (
+      tester,
+    ) async {
+      when(() => getStatus()).thenAnswer(
+        (_) async => const ApiSuccess(StartupStatus(hasProfile: false)),
+      );
+      final cubit = build(minimumDisplay: const Duration(seconds: 1));
+      addTearDown(cubit.close);
+
+      final checked = cubit.check();
+      await tester.pump(const Duration(milliseconds: 900));
+      expect(cubit.state, const SplashLoading());
+
+      await tester.pump(const Duration(milliseconds: 100));
+      await checked;
+      expect(cubit.state, const SplashNeedsOnboarding());
+    });
+
+    testWidgets('a retry does not wait again', (tester) async {
+      when(() => getStatus()).thenAnswer(
+        (_) async => const ApiSuccess(StartupStatus(hasProfile: false)),
+      );
+      final cubit = build(minimumDisplay: const Duration(seconds: 1));
+      addTearDown(cubit.close);
+      final launch = cubit.check();
+      await tester.pump(const Duration(seconds: 1));
+      await launch;
+
+      final retry = cubit.check();
+      await tester.pump();
+      await retry;
+
+      expect(cubit.state, const SplashNeedsOnboarding());
+    });
 
     test('refreshes goal and workout reminders on launch', () async {
       when(() => getStatus()).thenAnswer(

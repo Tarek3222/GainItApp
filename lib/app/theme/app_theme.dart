@@ -1,3 +1,5 @@
+import 'package:animations/animations.dart';
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
@@ -64,6 +66,21 @@ abstract final class AppTheme {
       colorScheme: scheme,
       scaffoldBackgroundColor: background,
       textTheme: textTheme,
+      // Material shared-axis (z) motion for opening a page. Scaled rather
+      // than horizontal, which slides the same way in right-to-left text.
+      // iOS keeps its native swipe-back transition. (This replaces Android's
+      // predictive-back page animation.)
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: _ReducedMotionAware(
+            SharedAxisPageTransitionsBuilder(
+              transitionType: SharedAxisTransitionType.scaled,
+              fillColor: background,
+            ),
+          ),
+          TargetPlatform.iOS: const CupertinoPageTransitionsBuilder(),
+        },
+      ),
       extensions: [semantic],
       appBarTheme: AppBarTheme(
         backgroundColor: background,
@@ -144,6 +161,33 @@ abstract final class AppTheme {
       ),
       dialogTheme: DialogThemeData(backgroundColor: surface),
       listTileTheme: ListTileThemeData(iconColor: muted),
+    );
+  }
+}
+
+/// Shows pages without motion when the phone asks for reduced motion. The
+/// transition stays in the tree, settled, so toggling the setting never
+/// resets the page below it.
+class _ReducedMotionAware extends PageTransitionsBuilder {
+  const _ReducedMotionAware(this._builder);
+
+  final PageTransitionsBuilder _builder;
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    final still = MediaQuery.disableAnimationsOf(context);
+    return _builder.buildTransitions(
+      route,
+      context,
+      still ? kAlwaysCompleteAnimation : animation,
+      still ? kAlwaysDismissedAnimation : secondaryAnimation,
+      child,
     );
   }
 }

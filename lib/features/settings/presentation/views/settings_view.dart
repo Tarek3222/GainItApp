@@ -74,6 +74,7 @@ class _SettingsBody extends StatelessWidget {
     final cubit = context.read<SettingsCubit>();
     final edit = await showModalBottomSheet<_ProfileEdit>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (_) => _EditProfileSheet(profile: profile, age: overview.age),
@@ -118,6 +119,7 @@ class _SettingsBody extends StatelessWidget {
     final cubit = context.read<SettingsCubit>();
     final action = await showModalBottomSheet<_PhotoAction>(
       context: context,
+      useRootNavigator: true,
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,

@@ -67,6 +67,7 @@ class _FilterBar extends StatelessWidget {
     final cubit = context.read<HistoryCubit>();
     final muscle = await showModalBottomSheet<MuscleGroup?>(
       context: context,
+      useRootNavigator: true,
       builder: (context) => ListView(
         shrinkWrap: true,
         children: [
@@ -87,6 +88,7 @@ class _FilterBar extends StatelessWidget {
     final cubit = context.read<HistoryCubit>();
     final id = await showModalBottomSheet<String>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       builder: (context) => ListView(
         shrinkWrap: true,

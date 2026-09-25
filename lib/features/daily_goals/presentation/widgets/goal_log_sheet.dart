@@ -15,6 +15,7 @@ import 'goal_display.dart';
 Future<double?> showGoalLogSheet(BuildContext context, DailyGoal goal) =>
     showModalBottomSheet<double>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       showDragHandle: true,
       builder: (_) => _GoalLogSheet(goal: goal, units: context.units),

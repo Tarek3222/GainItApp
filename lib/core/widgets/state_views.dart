@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_tokens.dart';
+import 'motion.dart';
 
 class LoadingView extends StatelessWidget {
   const LoadingView({super.key});
@@ -100,7 +101,11 @@ class EmptyState extends StatelessWidget {
   }
 }
 
-/// Centers scrollable content and caps its width on tablets.
+/// Centers scrollable content and caps its width on tablets. Children ease in
+/// one after another when the page opens.
+///
+/// Content can scroll under the floating navigation bar, so the bottom
+/// padding adds the space it covers (`MediaQuery` padding).
 ///
 /// Children are built lazily by default. Forms pass [eager] so fields that
 /// scroll off-screen stay mounted and still take part in validation.
@@ -119,26 +124,34 @@ class PageBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectivePadding =
-        padding ??
-        const EdgeInsets.fromLTRB(
-          AppSpacing.page,
-          AppSpacing.sm,
-          AppSpacing.page,
-          AppSpacing.xl,
-        );
+        (padding ??
+                const EdgeInsets.fromLTRB(
+                  AppSpacing.page,
+                  AppSpacing.sm,
+                  AppSpacing.page,
+                  AppSpacing.xl,
+                ))
+            .add(EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom));
     return Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: AppSpacing.maxContentWidth),
-        child: eager
-            ? SingleChildScrollView(
-                padding: effectivePadding,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: children,
-                ),
-              )
-            : ListView(padding: effectivePadding, children: children),
+        child: EntranceGroup(
+          builder: (context, item) {
+            final items = [
+              for (final (i, child) in children.indexed) item(i, child),
+            ];
+            return eager
+                ? SingleChildScrollView(
+                    padding: effectivePadding,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: items,
+                    ),
+                  )
+                : ListView(padding: effectivePadding, children: items);
+          },
+        ),
       ),
     );
   }

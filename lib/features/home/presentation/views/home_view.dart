@@ -26,7 +26,9 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // The page scrolls under the navigation bar; PageBody pads for it.
       body: SafeArea(
+        bottom: false,
         child: ViewStateBuilder<HomeCubit, HomeDashboard>(
           onRetry: (cubit) => cubit.start(),
           // Daily goals load on their own, so they stay usable.

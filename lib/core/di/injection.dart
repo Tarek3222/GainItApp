@@ -87,6 +87,7 @@ void configureDependencies({
   DayChangeSource? dayChanges,
   required MediaStore media,
   StepCounter steps = const PedometerStepCounter(),
+  Duration splashMinimumDisplay = const Duration(milliseconds: 1200),
 }) {
   // Infrastructure
   getIt
@@ -274,6 +275,7 @@ void configureDependencies({
         abandonWorkout: getIt(),
         syncReminders: getIt(),
         syncWorkoutReminders: getIt(),
+        minimumDisplay: splashMinimumDisplay,
       ),
     )
     ..registerFactory(

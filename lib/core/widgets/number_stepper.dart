@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_tokens.dart';
 import '../../app/theme/app_typography.dart';
+import 'motion.dart';
 
 /// Large −/+ control for weight and reps. Tapping the value opens quick
 /// numeric entry (spec §20: avoid tiny text fields).
@@ -87,7 +88,7 @@ class NumberStepper extends StatelessWidget {
                           style: AppTypography.metricLarge.copyWith(
                             color: theme.colorScheme.onSurface,
                           ),
-                        ),
+                        ).bump(context, key: ValueKey(_text)),
                       ),
                       Text(
                         label,

@@ -18,6 +18,7 @@ Future<ProgramExercise?> showExerciseConfigSheet(
 }) {
   return showModalBottomSheet<ProgramExercise>(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     useSafeArea: true,
     builder: (_) =>

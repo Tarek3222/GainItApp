@@ -50,69 +50,74 @@ class _SummaryBody extends StatelessWidget {
     return Column(
       children: [
         Expanded(
-          child: PageBody(
-            children: [
-              Icon(
-                Icons.emoji_events_outlined,
-                size: 48,
-                color: context.semanticColors.success,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                'summary.complete'.tr(),
-                style: theme.textTheme.headlineMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                seedName(summary.workoutName),
-                style: theme.textTheme.titleMedium,
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                '${'common.workingSets'.plural(summary.workingSets)} · '
-                '${Formatters.duration(summary.duration)}',
-                style: theme.textTheme.bodySmall,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              if (summary.volume.isNotEmpty)
-                AppCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SectionLabel('summary.volume'.tr()),
-                      for (final entry in summary.volume.entries)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: AppSpacing.xxs,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(child: Text(entry.key.label)),
-                              Text(
-                                'common.sets'.plural(entry.value),
-                                style: theme.textTheme.titleSmall,
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
+          // The button below already keeps clear of the bottom inset.
+          child: MediaQuery.removePadding(
+            context: context,
+            removeBottom: true,
+            child: PageBody(
+              children: [
+                Icon(
+                  Icons.emoji_events_outlined,
+                  size: 48,
+                  color: context.semanticColors.success,
                 ),
-              const SizedBox(height: AppSpacing.md),
-              if (summary.lines.isNotEmpty)
-                AppCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SectionLabel('summary.progress'.tr()),
-                      for (final line in summary.lines)
-                        ProgressLineTile(line: line),
-                    ],
-                  ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'summary.complete'.tr(),
+                  style: theme.textTheme.headlineMedium,
+                  textAlign: TextAlign.center,
                 ),
-            ],
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  seedName(summary.workoutName),
+                  style: theme.textTheme.titleMedium,
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  '${'common.workingSets'.plural(summary.workingSets)} · '
+                  '${Formatters.duration(summary.duration)}',
+                  style: theme.textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                if (summary.volume.isNotEmpty)
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SectionLabel('summary.volume'.tr()),
+                        for (final entry in summary.volume.entries)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.xxs,
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(child: Text(entry.key.label)),
+                                Text(
+                                  'common.sets'.plural(entry.value),
+                                  style: theme.textTheme.titleSmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: AppSpacing.md),
+                if (summary.lines.isNotEmpty)
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SectionLabel('summary.progress'.tr()),
+                        for (final line in summary.lines)
+                          ProgressLineTile(line: line),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
         SafeArea(

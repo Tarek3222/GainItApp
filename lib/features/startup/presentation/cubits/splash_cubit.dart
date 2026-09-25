@@ -20,6 +20,7 @@ class SplashCubit extends Cubit<SplashState> {
     required this._abandonWorkout,
     required this._syncReminders,
     required this._syncWorkoutReminders,
+    this._minimumDisplay = Duration.zero,
   }) : super(const SplashLoading());
 
   final GetStartupStatusUseCase _getStatus;
@@ -27,8 +28,15 @@ class SplashCubit extends Cubit<SplashState> {
   final SyncGoalRemindersUseCase _syncReminders;
   final SyncWorkoutRemindersUseCase _syncWorkoutReminders;
 
+  /// How long the splash stays up on launch at least, so its animation
+  /// plays out instead of flashing by. A retry doesn't wait again.
+  final Duration _minimumDisplay;
+  bool _launched = false;
+
   Future<void> check() async {
     emit(const SplashLoading());
+    final shown = _launched ? null : Future<void>.delayed(_minimumDisplay);
+    _launched = true;
     // Reminders are refreshed on every launch: goal reminders skip goals
     // already reached today, and both follow a changed phone language. It
     // runs here rather than in `main` so the translations used for their
@@ -36,6 +44,7 @@ class SplashCubit extends Cubit<SplashState> {
     unawaited(_syncReminders().then(_logFailure));
     unawaited(_syncWorkoutReminders().then(_logFailure));
     final result = await _getStatus();
+    await shown;
     if (isClosed) return;
     emit(
       result.fold((failure) => SplashError(failure.userMessage), (status) {
