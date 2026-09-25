@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:hive_ce/hive_ce.dart';
 
 import '../domain/entities/body_weight_entry.dart';
+import '../domain/entities/daily_goal.dart';
 import '../domain/entities/program.dart';
 import '../domain/entities/user_profile.dart';
 import '../domain/entities/workout_session.dart';
@@ -25,6 +26,8 @@ class HiveStorage {
     required this.setLogs,
     required this.bodyWeights,
     required this.settings,
+    required this.dailyGoals,
+    required this.dailyGoalLogs,
   });
 
   final Box<UserProfile> profile;
@@ -37,6 +40,8 @@ class HiveStorage {
   final Box<SetLog> setLogs;
   final Box<BodyWeightEntry> bodyWeights;
   final Box<Object?> settings;
+  final Box<DailyGoal> dailyGoals;
+  final Box<DailyGoalLog> dailyGoalLogs;
 
   /// [inMemory] opens every box without touching disk — for widget tests,
   /// where real file IO does not complete inside the fake-async zone.
@@ -63,6 +68,8 @@ class HiveStorage {
       setLogs: await box<SetLog>(BoxNames.setLogs),
       bodyWeights: await box<BodyWeightEntry>(BoxNames.bodyWeightLogs),
       settings: await box<Object?>(BoxNames.settings),
+      dailyGoals: await box<DailyGoal>(BoxNames.dailyGoals),
+      dailyGoalLogs: await box<DailyGoalLog>(BoxNames.dailyGoalLogs),
     );
   }
 
@@ -77,6 +84,8 @@ class HiveStorage {
     setLogs,
     bodyWeights,
     settings,
+    dailyGoals,
+    dailyGoalLogs,
   ];
 
   /// Wipes all user data. Children are cleared before parents so an
@@ -86,6 +95,8 @@ class HiveStorage {
     await sessionExercises.clear();
     await sessions.clear();
     await bodyWeights.clear();
+    await dailyGoalLogs.clear();
+    await dailyGoals.clear();
     await programExercises.clear();
     await exercises.clear();
     await workoutDays.clear();

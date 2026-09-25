@@ -14,6 +14,7 @@ import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../../../core/widgets/view_state_builder.dart';
 import '../../../body_weight/presentation/widgets/log_weight_sheet.dart';
+import '../../../daily_goals/presentation/widgets/todays_progress_card.dart';
 import '../../domain/entities/home_dashboard.dart';
 import '../cubits/home_cubit.dart';
 
@@ -26,11 +27,20 @@ class HomeView extends StatelessWidget {
       body: SafeArea(
         child: ViewStateBuilder<HomeCubit, HomeDashboard>(
           onRetry: (cubit) => cubit.start(),
+          // Daily goals load on their own, so they stay usable.
+          errorBuilder: (context, message, retry) => PageBody(
+            children: [
+              ErrorView(message: message, onRetry: retry),
+              const TodaysProgressCard(),
+            ],
+          ),
           builder: (context, dashboard) => PageBody(
             children: [
               _Greeting(dashboard: dashboard),
               const SizedBox(height: AppSpacing.md),
               _NextWorkoutCard(dashboard: dashboard),
+              const SizedBox(height: AppSpacing.md),
+              const TodaysProgressCard(),
               const SizedBox(height: AppSpacing.md),
               _BodyWeightCard(dashboard: dashboard),
               const SizedBox(height: AppSpacing.md),

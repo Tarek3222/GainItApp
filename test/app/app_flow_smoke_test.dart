@@ -6,11 +6,13 @@ import 'package:gainit/core/di/injection.dart';
 import 'package:gainit/core/domain/entities/enums.dart';
 import 'package:gainit/core/domain/services/day_change_source.dart';
 import 'package:gainit/core/domain/services/notification_scheduler.dart';
+import 'package:gainit/core/domain/services/step_counter.dart';
 import 'package:gainit/core/storage/hive_storage.dart';
 import 'package:gainit/core/storage/storage_bootstrap.dart';
 import 'package:hive_ce/hive_ce.dart';
 
 import '../helpers/fake_media_store.dart';
+import '../helpers/fake_step_counter.dart';
 import '../helpers/fixed_clock.dart';
 import '../helpers/scroll.dart';
 
@@ -25,6 +27,12 @@ class _FakeNotifications implements NotificationScheduler {
 
   @override
   Future<void> cancelWorkoutReminders() async {}
+
+  @override
+  Future<void> scheduleGoalReminders(List<GoalReminder> reminders) async {}
+
+  @override
+  Future<void> cancelGoalReminders() async {}
 
   @override
   Future<bool> requestPermission() async => true;
@@ -58,6 +66,7 @@ void main() {
       clock: clock,
       dayChanges: _NoDayChanges(),
       media: FakeMediaStore(),
+      steps: FakeStepCounter(access: StepAccess.denied),
     );
   });
 
@@ -86,6 +95,17 @@ void main() {
     expect(find.text('Good evening, Tarek'), findsOneWidget);
     expect(find.text('Legs'), findsOneWidget);
     expect(find.text('70 kg'), findsOneWidget);
+
+    // Today's progress: the default water and step goals.
+    expect(find.text('0 / 3 L'), findsOneWidget);
+    expect(find.text('0 / 10,000 steps'), findsOneWidget);
+    await tester.tap(find.text('+250 ml'));
+    await tester.pumpAndSettle();
+    expect(find.text('0.25 / 3 L'), findsOneWidget);
+    expect(storage.dailyGoalLogs.values.single.amount, 250);
+    // Let the "Added 250 ml · Undo" snackbar time out.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
 
     // Start today's workout.
     await tester.tap(find.text('Start workout'));
@@ -216,7 +236,11 @@ void main() {
     // History → session detail → exercise progress.
     await tester.tap(find.text('Home'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Workout history'));
+    await tester.scrollUntilVisible(
+      find.text('Workout history'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text('Workout history'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Legs'));

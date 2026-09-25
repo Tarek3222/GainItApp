@@ -9,4 +9,6 @@ abstract final class BoxNames {
   static const setLogs = 'set_logs';
   static const bodyWeightLogs = 'body_weight_logs';
   static const settings = 'settings';
+  static const dailyGoals = 'daily_goals';
+  static const dailyGoalLogs = 'daily_goal_logs';
 }

@@ -4,6 +4,8 @@
 <dict>
 	<key>NSCameraUsageDescription</key>
 	<string>GainIt uses the camera to take your profile photo and exercise photos or videos.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>GainIt counts your steps for your daily step goal.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>GainIt lets you choose a profile photo and exercise photos or videos from your library.</string>
 	<key>NSMicrophoneUsageDescription</key>

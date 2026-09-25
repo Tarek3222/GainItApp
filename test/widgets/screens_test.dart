@@ -11,6 +11,8 @@ import 'package:gainit/core/domain/training/progression_engine.dart';
 import 'package:gainit/core/presentation/units/unit_format.dart';
 import 'package:gainit/core/presentation/view_state.dart';
 import 'package:gainit/core/widgets/measure_wheel_picker.dart';
+import 'package:gainit/features/daily_goals/domain/entities/daily_goal_entities.dart';
+import 'package:gainit/features/daily_goals/presentation/cubits/daily_goal_cubits.dart';
 import 'package:gainit/features/home/domain/entities/home_dashboard.dart';
 import 'package:gainit/features/home/presentation/cubits/home_cubit.dart';
 import 'package:gainit/features/home/presentation/views/home_view.dart';
@@ -29,6 +31,9 @@ import '../helpers/scroll.dart';
 
 class _MockHomeCubit extends MockCubit<ViewState<HomeDashboard>>
     implements HomeCubit {}
+
+class _MockTodayGoalsCubit extends MockCubit<ViewState<TodayGoals>>
+    implements TodayGoalsCubit {}
 
 class _MockSummaryCubit extends MockCubit<WorkoutSummaryState>
     implements WorkoutSummaryCubit {}
@@ -90,9 +95,20 @@ void main() {
       ),
     );
 
+    final goals = _MockTodayGoalsCubit();
+    when(() => goals.state).thenReturn(
+      const ViewLoaded(TodayGoals(goals: [], stepStatus: StepStatus.active)),
+    );
+
     await tester.pumpWidget(
       _app(
-        BlocProvider<HomeCubit>.value(value: cubit, child: const HomeView()),
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<HomeCubit>.value(value: cubit),
+            BlocProvider<TodayGoalsCubit>.value(value: goals),
+          ],
+          child: const HomeView(),
+        ),
       ),
     );
 
@@ -103,6 +119,33 @@ void main() {
     expect(find.text('3/4 workouts'), findsOneWidget);
     expect(find.text('46 working sets'), findsOneWidget);
     expect(find.text('Start workout'), findsOneWidget);
+  });
+
+  testWidgets('Home keeps daily goals usable when its own data fails', (
+    tester,
+  ) async {
+    final cubit = _MockHomeCubit();
+    when(() => cubit.state).thenReturn(const ViewError('Could not load.'));
+    final goals = _MockTodayGoalsCubit();
+    when(() => goals.state).thenReturn(
+      const ViewLoaded(TodayGoals(goals: [], stepStatus: StepStatus.active)),
+    );
+
+    await tester.pumpWidget(
+      _app(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<HomeCubit>.value(value: cubit),
+            BlocProvider<TodayGoalsCubit>.value(value: goals),
+          ],
+          child: const HomeView(),
+        ),
+      ),
+    );
+
+    expect(find.text('Could not load.'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
+    expect(find.text('TODAY’S PROGRESS'), findsOneWidget);
   });
 
   group('ExercisePanel', () {

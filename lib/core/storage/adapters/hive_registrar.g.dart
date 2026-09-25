@@ -8,6 +8,9 @@ import 'package:gainit/core/storage/adapters/hive_adapters.dart';
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
     registerAdapter(BodyWeightEntryAdapter());
+    registerAdapter(DailyGoalAdapter());
+    registerAdapter(DailyGoalLogAdapter());
+    registerAdapter(DailyGoalTypeAdapter());
     registerAdapter(DayTypeAdapter());
     registerAdapter(ExerciseAdapter());
     registerAdapter(ExerciseCategoryAdapter());
@@ -29,6 +32,9 @@ extension HiveRegistrar on HiveInterface {
 extension IsolatedHiveRegistrar on IsolatedHiveInterface {
   void registerAdapters() {
     registerAdapter(BodyWeightEntryAdapter());
+    registerAdapter(DailyGoalAdapter());
+    registerAdapter(DailyGoalLogAdapter());
+    registerAdapter(DailyGoalTypeAdapter());
     registerAdapter(DayTypeAdapter());
     registerAdapter(ExerciseAdapter());
     registerAdapter(ExerciseCategoryAdapter());

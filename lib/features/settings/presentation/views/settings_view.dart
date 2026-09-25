@@ -276,6 +276,12 @@ class _SettingsBody extends StatelessWidget {
             ),
           ),
         ListTile(
+          title: const Text('Daily goals'),
+          subtitle: const Text('Water, steps and reminders'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.push(RoutePaths.dailyGoals),
+        ),
+        ListTile(
           title: const Text('Body weight log'),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.push(RoutePaths.bodyWeight),

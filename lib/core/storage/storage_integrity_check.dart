@@ -2,7 +2,8 @@ import '../domain/entities/enums.dart';
 import 'hive_storage.dart';
 
 /// Repairs the only inconsistencies that ordered writes can leave behind:
-/// - children whose parent was never written (a crash mid-write), and
+/// - children whose parent was never written or was only partly removed
+///   (a crash mid-write), and
 /// - more than one in-progress workout. Only the newest is kept open; the
 ///   older ones are abandoned so they can't linger unseen.
 class StorageIntegrityCheck {
@@ -26,6 +27,13 @@ class StorageIntegrityCheck {
         .toList();
     await _storage.setLogs.deleteAll(orphanSets);
 
+    final goalIds = _storage.dailyGoals.keys.toSet();
+    final orphanGoalLogs = _storage.dailyGoalLogs.values
+        .where((l) => !goalIds.contains(l.goalId))
+        .map((l) => l.id)
+        .toList();
+    await _storage.dailyGoalLogs.deleteAll(orphanGoalLogs);
+
     final inProgress =
         _storage.sessions.values.where((s) => s.isInProgress).toList()
           ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
@@ -38,6 +46,9 @@ class StorageIntegrityCheck {
         ),
     });
 
-    return orphanExercises.length + orphanSets.length + stale.length;
+    return orphanExercises.length +
+        orphanSets.length +
+        orphanGoalLogs.length +
+        stale.length;
   }
 }

@@ -44,3 +44,7 @@ enum TrainingGoal {
 
 /// How weights and heights are shown. Storage is always kg / cm.
 enum UnitSystem { metric, imperial }
+
+/// Kinds of daily goal. Water and steps have their own units and tracking;
+/// custom goals carry a name and unit.
+enum DailyGoalType { water, steps, custom }

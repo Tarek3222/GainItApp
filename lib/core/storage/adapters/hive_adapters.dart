@@ -1,6 +1,7 @@
 import 'package:hive_ce/hive_ce.dart';
 
 import '../../domain/entities/body_weight_entry.dart';
+import '../../domain/entities/daily_goal.dart';
 import '../../domain/entities/enums.dart';
 import '../../domain/entities/program.dart';
 import '../../domain/entities/user_profile.dart';
@@ -34,6 +35,9 @@ part 'hive_adapters.g.dart';
   AdapterSpec<ProgressionType>(),
   AdapterSpec<TrainingGoal>(),
   AdapterSpec<UnitSystem>(),
+  AdapterSpec<DailyGoal>(),
+  AdapterSpec<DailyGoalLog>(),
+  AdapterSpec<DailyGoalType>(),
 ])
 // ignore: unused_element
 void _hiveAdapters() {}

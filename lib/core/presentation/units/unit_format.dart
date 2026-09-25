@@ -47,6 +47,48 @@ class UnitFormat {
     return '$sign$text $weightUnit';
   }
 
+  String get waterUnit => isMetric ? 'ml' : 'fl oz';
+
+  /// ml → value in the display unit (fl oz rounded to 1 decimal).
+  double toDisplayWater(double ml) => isMetric
+      ? ml.roundToDouble()
+      : double.parse(UnitConverter.mlToFlOz(ml).toStringAsFixed(1));
+
+  /// Display value → ml for storage.
+  double fromDisplayWater(double value) =>
+      isMetric ? value : UnitConverter.flOzToMl(value);
+
+  /// Quick-add sizes in ml: a glass and a bottle (250 / 500 ml, or
+  /// 8 / 16 fl oz).
+  List<double> get waterServingsMl => isMetric
+      ? const [250, 500]
+      : [UnitConverter.flOzToMl(8), UnitConverter.flOzToMl(16)];
+
+  /// Step for editing a water target in display units.
+  double get waterTargetStep => isMetric ? 250 : 8;
+
+  /// "750 ml" / "1.5 L" / "25 fl oz".
+  String water(double ml) {
+    if (!isMetric) return '${_oz(ml)} fl oz';
+    return ml >= 1000
+        ? '${Formatters.weight(_litres(ml))} L'
+        : '${ml.round()} ml';
+  }
+
+  /// Today's water against the target in one unit: "1.25 / 3 L",
+  /// "400 / 750 ml", "42 / 101 fl oz".
+  String waterProgress(double ml, double targetMl) {
+    if (!isMetric) return '${_oz(ml)} / ${_oz(targetMl)} fl oz';
+    if (targetMl < 1000) return '${ml.round()} / ${targetMl.round()} ml';
+    return '${Formatters.weight(_litres(ml))} / '
+        '${Formatters.weight(_litres(targetMl))} L';
+  }
+
+  static double _litres(double ml) => (ml / 10).round() / 100;
+
+  static String _oz(double ml) =>
+      Formatters.weight((UnitConverter.mlToFlOz(ml) * 10).round() / 10);
+
   /// "180 cm" / "5′11″".
   String height(double cm) {
     if (isMetric) return '${cm.round()} cm';

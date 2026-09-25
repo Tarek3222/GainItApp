@@ -4,6 +4,7 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../domain/entities/enums.dart';
 import '../domain/services/notification_scheduler.dart';
 
 /// `flutter_local_notifications` implementation of [NotificationScheduler].
@@ -17,6 +18,7 @@ class LocalNotificationService implements NotificationScheduler {
   static const _restCountdownId = 1000;
   static const _restOverId = 1001;
   static const _reminderBaseId = 2000;
+  static const _goalReminderBaseId = 3000;
 
   static const _restChannel = AndroidNotificationDetails(
     'rest_timer',
@@ -31,6 +33,12 @@ class LocalNotificationService implements NotificationScheduler {
     'workout_reminders',
     'Workout reminders',
     channelDescription: 'Reminds you on scheduled training days.',
+  );
+
+  static const _goalChannel = AndroidNotificationDetails(
+    'daily_goals',
+    'Daily goals',
+    channelDescription: 'Reminders for water, steps and your other goals.',
   );
 
   Future<void>? _init;
@@ -177,6 +185,96 @@ class LocalNotificationService implements NotificationScheduler {
     for (var weekday = 1; weekday <= 7; weekday++) {
       await _plugin.cancel(id: _reminderBaseId + weekday);
     }
+  }
+
+  @override
+  Future<void> scheduleGoalReminders(List<GoalReminder> reminders) async {
+    await init();
+    await cancelGoalReminders();
+    final now = tz.TZDateTime.now(tz.local);
+    final count = reminders.length < NotificationScheduler.maxGoalReminders
+        ? reminders.length
+        : NotificationScheduler.maxGoalReminders;
+    for (var i = 0; i < count; i++) {
+      final reminder = reminders[i];
+      final (title, body) = _goalText(reminder);
+      await _plugin.zonedSchedule(
+        id: _goalReminderBaseId + i,
+        title: title,
+        body: body,
+        scheduledDate: nextDaily(
+          now,
+          reminder.minutesOfDay,
+          skipToday: reminder.skipToday,
+        ),
+        notificationDetails: const NotificationDetails(
+          android: _goalChannel,
+          iOS: DarwinNotificationDetails(),
+        ),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        matchDateTimeComponents: repeatsDaily(reminder, defaultTargetPlatform)
+            ? DateTimeComponents.time
+            : null,
+      );
+    }
+  }
+
+  @override
+  Future<void> cancelGoalReminders() async {
+    await init();
+    for (var i = 0; i < NotificationScheduler.maxGoalReminders; i++) {
+      await _plugin.cancel(id: _goalReminderBaseId + i);
+    }
+  }
+
+  static (String, String) _goalText(GoalReminder reminder) =>
+      switch (reminder.type) {
+        DailyGoalType.water => (
+          'Time for some water',
+          'A glass now keeps you on track for today’s goal.',
+        ),
+        DailyGoalType.steps => (
+          'Time to move',
+          'A short walk brings you closer to today’s step goal.',
+        ),
+        DailyGoalType.custom => (reminder.title, 'Keep going on today’s goal.'),
+      };
+
+  /// Whether [reminder] is scheduled as a daily repeat.
+  ///
+  /// A daily repeat on iOS keeps only the time of day and drops the date,
+  /// so it would still fire today. A goal reached today therefore gets a
+  /// one-off reminder for tomorrow there instead; the next sync (on
+  /// launch, resume or at midnight) turns it back into a daily repeat.
+  @visibleForTesting
+  static bool repeatsDaily(GoalReminder reminder, TargetPlatform platform) =>
+      !(reminder.skipToday && platform == TargetPlatform.iOS);
+
+  /// First time a daily reminder at [minutesOfDay] fires: later today, or
+  /// tomorrow when that time has passed or the goal is reached today.
+  @visibleForTesting
+  static tz.TZDateTime nextDaily(
+    tz.TZDateTime now,
+    int minutesOfDay, {
+    required bool skipToday,
+  }) {
+    final today = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      minutesOfDay ~/ 60,
+      minutesOfDay % 60,
+    );
+    if (!skipToday && today.isAfter(now)) return today;
+    return tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day + 1,
+      minutesOfDay ~/ 60,
+      minutesOfDay % 60,
+    );
   }
 
   static tz.TZDateTime _nextInstance(
