@@ -40,7 +40,6 @@ ActiveWorkout workout({SessionStatus status = SessionStatus.inProgress}) {
           type: RecommendationType.firstSession,
           repMin: 6,
           repMax: 10,
-          reason: '',
         ),
       ),
     ],

@@ -1,5 +1,5 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/domain/entities/daily_goal.dart';
 import '../../../../core/domain/entities/enums.dart';
@@ -9,8 +9,8 @@ import '../../../../core/utils/formatters.dart';
 /// How goals are named, drawn and measured on screen.
 extension GoalDisplay on DailyGoal {
   String get displayName => switch (type) {
-    DailyGoalType.water => 'Water',
-    DailyGoalType.steps => 'Steps',
+    DailyGoalType.water => 'goals.water'.tr(),
+    DailyGoalType.steps => 'goals.steps'.tr(),
     DailyGoalType.custom => title,
   };
 
@@ -23,7 +23,9 @@ extension GoalDisplay on DailyGoal {
   /// "1.5 L", "8,432 steps", "20 pages".
   String amountText(UnitFormat units, double amount) => switch (type) {
     DailyGoalType.water => units.water(amount),
-    DailyGoalType.steps => '${_count(amount)} steps',
+    DailyGoalType.steps => 'goals.stepsCount'.tr(
+      namedArgs: {'count': _count(amount)},
+    ),
     DailyGoalType.custom => _withUnit(Formatters.weight(amount)),
   };
 
@@ -31,7 +33,9 @@ extension GoalDisplay on DailyGoal {
   /// "8,432 / 10,000 steps", "12 / 20 pages".
   String progressText(UnitFormat units, double amount) => switch (type) {
     DailyGoalType.water => units.waterProgress(amount, target),
-    DailyGoalType.steps => '${_count(amount)} / ${_count(target)} steps',
+    DailyGoalType.steps => 'goals.stepsProgress'.tr(
+      namedArgs: {'done': _count(amount), 'target': _count(target)},
+    ),
     DailyGoalType.custom => _withUnit(
       '${Formatters.weight(amount)} / ${Formatters.weight(target)}',
     ),
@@ -39,21 +43,26 @@ extension GoalDisplay on DailyGoal {
 
   /// "Every 2 h, 9:00 AM – 9:00 PM", or "Reminders off".
   String get reminderSummary {
-    if (!reminderEnabled) return 'Reminders off';
-    return 'Every ${intervalLabel(reminderIntervalMinutes)}, '
-        '${Formatters.timeOfDay(reminderStartMinutes)} – '
-        '${Formatters.timeOfDay(reminderEndMinutes)}';
+    if (!reminderEnabled) return 'goals.remindersOff'.tr();
+    return 'goals.reminderSummary'.tr(
+      namedArgs: {
+        'interval': intervalLabel(reminderIntervalMinutes),
+        'from': Formatters.timeOfDay(reminderStartMinutes),
+        'to': Formatters.timeOfDay(reminderEndMinutes),
+      },
+    );
   }
 
   String _withUnit(String value) =>
       unit.trim().isEmpty ? value : '$value ${unit.trim()}';
 
+  // Western digits and separators in every language, like other numbers.
   static String _count(double value) =>
-      NumberFormat.decimalPattern().format(value.round());
+      NumberFormat.decimalPattern('en').format(value.round());
 }
 
 /// "30 min", "1 h", "1.5 h".
 String intervalLabel(int minutes) {
-  if (minutes < 60) return '$minutes min';
-  return '${Formatters.weight(minutes / 60)} h';
+  if (minutes < 60) return 'goals.minutes'.tr(namedArgs: {'n': '$minutes'});
+  return 'goals.hours'.tr(namedArgs: {'n': Formatters.weight(minutes / 60)});
 }

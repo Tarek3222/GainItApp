@@ -35,13 +35,15 @@ class DailyGoalLocalDataSource {
     final others = goals().where((g) => g.id != goal.id).toList();
     if (goal.type != DailyGoalType.custom &&
         others.any((g) => g.type == goal.type)) {
-      throw ValidationException(['You already have a ${goal.type.name} goal.']);
+      throw ValidationException([
+        goal.type == DailyGoalType.water
+            ? 'errors.duplicateWaterGoal'
+            : 'errors.duplicateStepGoal',
+      ]);
     }
     if (!_storage.dailyGoals.containsKey(goal.id) &&
         others.length >= Validators.maxDailyGoals) {
-      throw const ValidationException([
-        'You can track up to ${Validators.maxDailyGoals} daily goals.',
-      ]);
+      throw const ValidationException(['errors.maxGoals']);
     }
     await _storage.dailyGoals.put(goal.id, goal);
   }

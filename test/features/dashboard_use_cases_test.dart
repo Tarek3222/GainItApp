@@ -82,7 +82,7 @@ void main() {
         _NoDayChanges(),
       ).build(data());
 
-      expect(dashboard.greeting, 'Good evening');
+      expect(dashboard.greeting, GreetingTime.evening);
       expect(dashboard.nextWorkout!.dayId, 'day_mon');
       expect(dashboard.nextWorkout!.isToday, isTrue);
       expect(dashboard.nextWorkout!.totalSets, 20);

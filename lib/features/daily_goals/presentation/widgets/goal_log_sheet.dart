@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_tokens.dart';
@@ -56,8 +57,9 @@ class _GoalLogSheetState extends State<_GoalLogSheet> {
 
   String get _label => switch (_goal.type) {
     DailyGoalType.water => _units.waterUnit,
-    DailyGoalType.steps => 'steps',
-    DailyGoalType.custom => _goal.unit.trim().isEmpty ? 'amount' : _goal.unit,
+    DailyGoalType.steps => 'goals.stepsLabel'.tr(),
+    DailyGoalType.custom =>
+      _goal.unit.trim().isEmpty ? 'goals.amountLabel'.tr() : _goal.unit,
   };
 
   double get _stored => _goal.type == DailyGoalType.water
@@ -84,7 +86,7 @@ class _GoalLogSheetState extends State<_GoalLogSheet> {
             if (_goal.type == DailyGoalType.steps) ...[
               const SizedBox(height: AppSpacing.xxs),
               Text(
-                'Add steps your phone didn’t count, like a walk without it.',
+                'goals.stepsSheetHint'.tr(),
                 style: theme.textTheme.bodySmall,
               ),
             ],
@@ -124,7 +126,7 @@ class _GoalLogSheetState extends State<_GoalLogSheet> {
                   child: OutlinedButton.icon(
                     onPressed: () => Navigator.of(context).pop(-_stored),
                     icon: const Icon(Icons.remove),
-                    label: const Text('Take back'),
+                    label: Text('goals.takeBack'.tr()),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -132,7 +134,7 @@ class _GoalLogSheetState extends State<_GoalLogSheet> {
                   child: FilledButton.icon(
                     onPressed: () => Navigator.of(context).pop(_stored),
                     icon: const Icon(Icons.add),
-                    label: const Text('Add'),
+                    label: Text('goals.add'.tr()),
                   ),
                 ),
               ],

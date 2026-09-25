@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -62,13 +63,13 @@ class _TodaysProgressCardState extends State<TodaysProgressCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SectionLabel('Today’s progress'),
+              SectionLabel('goals.todaysProgress'.tr()),
               Text(message),
               Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: TextButton(
                   onPressed: () => context.read<TodayGoalsCubit>().start(),
-                  child: const Text('Retry'),
+                  child: Text('common.retry'.tr()),
                 ),
               ),
             ],
@@ -93,11 +94,11 @@ class _Goals extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SectionLabel(
-            'Today’s progress',
+            'goals.todaysProgress'.tr(),
             trailing: SizedBox.square(
               dimension: 32,
               child: IconButton(
-                tooltip: 'Edit daily goals',
+                tooltip: 'goals.editGoals'.tr(),
                 padding: EdgeInsets.zero,
                 iconSize: 20,
                 onPressed: () => context.push(RoutePaths.dailyGoals),
@@ -106,13 +107,15 @@ class _Goals extends StatelessWidget {
             ),
           ),
           if (today.isEmpty)
-            Text(
-              'No daily goals yet. Add water, steps or your own.',
-              style: theme.textTheme.bodyMedium,
-            )
+            Text('goals.emptyCard'.tr(), style: theme.textTheme.bodyMedium)
           else ...[
             Text(
-              '${today.completedCount} of ${today.goals.length} goals reached',
+              'goals.reached'.tr(
+                namedArgs: {
+                  'done': '${today.completedCount}',
+                  'total': '${today.goals.length}',
+                },
+              ),
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: AppSpacing.xs),
@@ -150,11 +153,12 @@ class _GoalRow extends StatelessWidget {
               // Undo is a convenience, so the bar still times out.
               persist: false,
               content: Text(
-                '${applied > 0 ? 'Added' : 'Took back'} '
-                '${_goal.amountText(units, applied.abs())}',
+                (applied > 0 ? 'goals.added' : 'goals.tookBack').tr(
+                  namedArgs: {'amount': _goal.amountText(units, applied.abs())},
+                ),
               ),
               action: SnackBarAction(
-                label: 'Undo',
+                label: 'goals.undo'.tr(),
                 onPressed: () => cubit.addProgress(_goal.id, -applied),
               ),
             ),
@@ -179,12 +183,9 @@ class _GoalRow extends StatelessWidget {
       case StepAccess.granted:
         break;
       case StepAccess.denied || StepAccess.permanentlyDenied:
-        showMessage(
-          context,
-          'Without step access, you can still add steps by hand.',
-        );
+        showMessage(context, 'goals.stepAccessDenied'.tr());
       case StepAccess.unsupported:
-        showMessage(context, 'This phone can’t count steps.');
+        showMessage(context, 'goals.noStepSensor'.tr());
     }
   }
 
@@ -192,9 +193,9 @@ class _GoalRow extends StatelessWidget {
       ? null
       : switch (stepStatus) {
           StepStatus.active => null,
-          StepStatus.needsPermission => 'Allow step counting to track steps',
-          StepStatus.blocked => 'Step counting is off in system settings',
-          StepStatus.unavailable => 'No step sensor; add steps by hand',
+          StepStatus.needsPermission => 'goals.hint.needsPermission'.tr(),
+          StepStatus.blocked => 'goals.hint.blocked'.tr(),
+          StepStatus.unavailable => 'goals.hint.unavailable'.tr(),
         };
 
   /// The theme's full-width buttons don't fit in a row.
@@ -223,14 +224,14 @@ class _GoalRow extends StatelessWidget {
         return switch (stepStatus) {
           StepStatus.needsPermission => TextButton(
             onPressed: () => _enableSteps(context),
-            child: const Text('Turn on'),
+            child: Text('goals.turnOn'.tr()),
           ),
           StepStatus.blocked => TextButton(
             onPressed: () => context.read<TodayGoalsCubit>().openStepSettings(),
-            child: const Text('Settings'),
+            child: Text('goals.settings'.tr()),
           ),
           StepStatus.active || StepStatus.unavailable => IconButton(
-            tooltip: 'Add steps',
+            tooltip: 'goals.addSteps'.tr(),
             onPressed: () => _log(context),
             icon: const Icon(Icons.add),
           ),

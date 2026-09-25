@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -5,6 +6,8 @@ import '../../../../app/theme/app_tokens.dart';
 import '../../../../core/domain/entities/workout_session.dart';
 import '../../../../core/domain/training/progression_engine.dart';
 import '../../../../core/domain/validation/validators.dart';
+import '../../../../core/l10n/enum_labels.dart';
+import '../../../../core/l10n/seed_names.dart';
 import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
@@ -58,14 +61,11 @@ class ExercisePanel extends StatelessWidget {
                 : null,
           ),
         if (exercise.isSkipped)
-          const _InfoBanner(
-            icon: Icons.skip_next,
-            text: 'Skipped. Tap "Unskip" to log sets for this exercise.',
-          )
+          _InfoBanner(icon: Icons.skip_next, text: 'workout.skippedBanner'.tr())
         else if (exercise.isComplete)
-          const _InfoBanner(
+          _InfoBanner(
             icon: Icons.check_circle,
-            text: 'All working sets done.',
+            text: 'workout.allSetsDone'.tr(),
             success: true,
           )
         else
@@ -80,7 +80,10 @@ class ExercisePanel extends StatelessWidget {
           child: TextButton.icon(
             onPressed: onToggleSkip,
             icon: Icon(exercise.isSkipped ? Icons.undo : Icons.skip_next),
-            label: Text(exercise.isSkipped ? 'Unskip' : 'Skip exercise'),
+            label: Text(
+              (exercise.isSkipped ? 'workout.unskip' : 'workout.skipExercise')
+                  .tr(),
+            ),
           ),
         ),
       ],
@@ -99,15 +102,18 @@ class _Header extends StatelessWidget {
     final s = exercise.snapshot;
     final details = [
       s.primaryMuscle.label,
-      '${s.targetSets} sets',
+      'common.sets'.plural(s.targetSets),
       if (s.restSeconds > 0)
-        'Rest ${Formatters.rest(s.restSeconds, s.restSeconds)}',
-      if (s.supersetGroup != null) 'Superset ${s.supersetGroup}',
+        'workout.rest'.tr(
+          namedArgs: {'time': Formatters.rest(s.restSeconds, s.restSeconds)},
+        ),
+      if (s.supersetGroup case final group?)
+        'workout.superset'.tr(namedArgs: {'n': '$group'}),
     ].join(' · ');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(s.exerciseName, style: theme.textTheme.headlineSmall),
+        Text(seedName(s.exerciseName), style: theme.textTheme.headlineSmall),
         const SizedBox(height: AppSpacing.xs),
         Text(details, style: theme.textTheme.bodySmall),
       ],
@@ -128,7 +134,7 @@ class _TargetCard extends StatelessWidget {
     final s = exercise.snapshot;
     final last = exercise.lastPerformance;
     final weightText = rec.suggestedWeight == null
-        ? 'Choose a weight'
+        ? 'workout.chooseWeight'.tr()
         : context.units.weight(rec.suggestedWeight!);
     final (icon, color) = switch (rec.type) {
       RecommendationType.increaseWeight => (
@@ -147,14 +153,16 @@ class _TargetCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionLabel('Target'),
+          SectionLabel('workout.target'.tr()),
           Text(
             '$weightText · ${Formatters.repRange(s.repMin, s.repMax)}',
             style: theme.textTheme.titleLarge,
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'RIR ${s.rirMin}–${s.rirMax}',
+            'workout.rirRange'.tr(
+              namedArgs: {'min': '${s.rirMin}', 'max': '${s.rirMax}'},
+            ),
             style: theme.textTheme.bodyMedium?.copyWith(color: muted),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -164,16 +172,21 @@ class _TargetCard extends StatelessWidget {
               Icon(icon, size: 18, color: color),
               const SizedBox(width: AppSpacing.xs),
               Expanded(
-                child: Text(rec.reason, style: theme.textTheme.bodySmall),
+                child: Text(_adviceText(rec), style: theme.textTheme.bodySmall),
               ),
             ],
           ),
           const Divider(height: AppSpacing.lg),
           Text(
             last == null
-                ? 'Last: no previous session'
-                : 'Last: ${context.units.weight(last.topWeight)} · '
-                      '${Formatters.repsList(last.sets.map((e) => e.reps))}',
+                ? 'workout.lastNone'.tr()
+                : 'workout.last'.tr(
+                    namedArgs: {
+                      'result':
+                          '${context.units.weight(last.topWeight)} · '
+                          '${Formatters.repsList(last.sets.map((e) => e.reps))}',
+                    },
+                  ),
             style: theme.textTheme.bodyMedium?.copyWith(color: muted),
           ),
         ],
@@ -181,6 +194,22 @@ class _TargetCard extends StatelessWidget {
     );
   }
 }
+
+/// The engine's advice in words.
+String _adviceText(Recommendation rec) => switch (rec.type) {
+  RecommendationType.firstSession => 'workout.advice.firstSession'.tr(
+    namedArgs: {'min': '${rec.repMin}', 'max': '${rec.repMax}'},
+  ),
+  RecommendationType.increaseWeight => 'workout.advice.increaseWeight'.tr(
+    namedArgs: {'max': '${rec.repMax}'},
+  ),
+  RecommendationType.deload => 'workout.advice.deload'.tr(
+    namedArgs: {'count': '${rec.sessionsWithoutProgress}'},
+  ),
+  RecommendationType.addReps => 'workout.advice.addReps'.tr(
+    namedArgs: {'target': '${rec.targetReps ?? rec.repMin}'},
+  ),
+};
 
 class _LoggedSetRow extends StatelessWidget {
   const _LoggedSetRow({required this.set, this.onUndo});
@@ -206,16 +235,21 @@ class _LoggedSetRow extends StatelessWidget {
               size: 20,
             ),
             const SizedBox(width: AppSpacing.sm),
-            Text('Set ${set.setNumber}', style: theme.textTheme.titleSmall),
+            Text(
+              'workout.setN'.tr(namedArgs: {'n': '${set.setNumber}'}),
+              style: theme.textTheme.titleSmall,
+            ),
             const Spacer(),
             Text(
               '${context.units.weight(set.actualWeight)} × ${set.actualReps}'
-              '${set.rir == null ? '' : '  RIR ${set.rir}'}',
+              '${set.rir == null ? '' : '  ${'workout.rir'.tr(namedArgs: {'n': '${set.rir}'})}'}',
               style: theme.textTheme.bodyLarge,
             ),
             if (onUndo != null)
               IconButton(
-                tooltip: 'Undo set ${set.setNumber}',
+                tooltip: 'workout.undoSet'.tr(
+                  namedArgs: {'n': '${set.setNumber}'},
+                ),
                 onPressed: onUndo,
                 icon: const Icon(Icons.undo, size: 20),
               )
@@ -309,7 +343,9 @@ class _SetEditorState extends State<SetEditor> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Set $setNumber of ${s.targetSets}',
+            'workout.setOf'.tr(
+              namedArgs: {'n': '$setNumber', 'total': '${s.targetSets}'},
+            ),
             style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: AppSpacing.md),
@@ -327,7 +363,7 @@ class _SetEditorState extends State<SetEditor> {
           ),
           const SizedBox(height: AppSpacing.sm),
           NumberStepper(
-            label: 'reps',
+            label: 'workout.repsLabel'.tr(),
             value: _reps.toDouble(),
             step: 1,
             min: 1,
@@ -335,7 +371,7 @@ class _SetEditorState extends State<SetEditor> {
             onChanged: (v) => setState(() => _reps = v.round()),
           ),
           const SizedBox(height: AppSpacing.md),
-          Text('RIR (optional)', style: theme.textTheme.bodySmall),
+          Text('workout.rirOptional'.tr(), style: theme.textTheme.bodySmall),
           const SizedBox(height: AppSpacing.xs),
           Wrap(
             spacing: AppSpacing.sm,
@@ -352,7 +388,7 @@ class _SetEditorState extends State<SetEditor> {
           const SizedBox(height: AppSpacing.md),
           if (_weight <= 0 && !widget.isResting) ...[
             Text(
-              'Enter a weight above 0',
+              'workout.weightAboveZero'.tr(),
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.error,
@@ -364,7 +400,9 @@ class _SetEditorState extends State<SetEditor> {
             onPressed: _canComplete ? _submit : null,
             icon: Icon(widget.isResting ? Icons.timer_outlined : Icons.check),
             label: Text(
-              widget.isResting ? 'Resting…' : 'Complete set $setNumber',
+              widget.isResting
+                  ? 'workout.resting'.tr()
+                  : 'workout.completeSet'.tr(namedArgs: {'n': '$setNumber'}),
             ),
           ),
         ],

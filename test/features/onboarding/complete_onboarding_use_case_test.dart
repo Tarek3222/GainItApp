@@ -86,7 +86,7 @@ void main() {
       isA<ValidationFailure>().having(
         (f) => f.errors,
         'errors',
-        contains('Age must be between 13 and 90.'),
+        contains('validation.ageRange'),
       ),
     );
     verifyNever(

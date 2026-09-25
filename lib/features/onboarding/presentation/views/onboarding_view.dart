@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/route_paths.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../core/domain/entities/enums.dart';
+import '../../../../core/l10n/enum_labels.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/measure_wheel_picker.dart';
 import '../../../../core/widgets/state_views.dart';
@@ -62,7 +64,7 @@ class _OnboardingViewState extends State<OnboardingView> {
   bool get _measurementsSet => _heightSet && _weightSet && _ageSet;
 
   String? _missing(bool isSet, String what) =>
-      _showMissing && !isSet ? 'Choose your $what' : null;
+      _showMissing && !isSet ? 'onboarding.choose.$what'.tr() : null;
 
   void _submit() {
     final formValid = _formKey.currentState!.validate();
@@ -105,27 +107,29 @@ class _OnboardingViewState extends State<OnboardingView> {
               padding: const EdgeInsets.all(AppSpacing.lg),
               children: [
                 Text(
-                  'Welcome to GainIt',
+                  'onboarding.welcome'.tr(),
                   style: theme.textTheme.headlineMedium,
                 ),
                 const SizedBox(height: AppSpacing.xs),
-                Text(
-                  'A few details to personalise your training. '
-                  'Everything stays on this device.',
-                  style: theme.textTheme.bodySmall,
-                ),
+                Text('onboarding.intro'.tr(), style: theme.textTheme.bodySmall),
                 const SizedBox(height: AppSpacing.lg),
                 TextFormField(
                   controller: _name,
                   textCapitalization: TextCapitalization.words,
                   textInputAction: TextInputAction.next,
                   maxLength: 40,
-                  decoration: const InputDecoration(labelText: 'Name'),
-                  validator: (v) =>
-                      (v ?? '').trim().isEmpty ? 'Enter your name' : null,
+                  decoration: InputDecoration(
+                    labelText: 'onboarding.name'.tr(),
+                  ),
+                  validator: (v) => (v ?? '').trim().isEmpty
+                      ? 'onboarding.enterName'.tr()
+                      : null,
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                Text('Units', style: theme.textTheme.titleSmall),
+                Text(
+                  'onboarding.units'.tr(),
+                  style: theme.textTheme.titleSmall,
+                ),
                 const SizedBox(height: AppSpacing.sm),
                 UnitSystemToggle(
                   value: _units,
@@ -167,7 +171,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                   }),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                Text('Goal', style: theme.textTheme.titleSmall),
+                Text('onboarding.goal'.tr(), style: theme.textTheme.titleSmall),
                 const SizedBox(height: AppSpacing.sm),
                 SegmentedButton<TrainingGoal>(
                   segments: [
@@ -181,7 +185,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                 const SizedBox(height: AppSpacing.lg),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Training start date'),
+                  title: Text('onboarding.startDate'.tr()),
                   subtitle: Text(Formatters.fullDate(_startDate)),
                   trailing: const Icon(Icons.calendar_today_outlined),
                   onTap: _pickStartDate,
@@ -190,7 +194,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                 BlocBuilder<OnboardingCubit, OnboardingState>(
                   builder: (context, state) => FilledButton(
                     onPressed: state is OnboardingSubmitting ? null : _submit,
-                    child: const Text('Start training'),
+                    child: Text('onboarding.start'.tr()),
                   ),
                 ),
               ],

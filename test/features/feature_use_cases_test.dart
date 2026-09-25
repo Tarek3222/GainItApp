@@ -113,20 +113,50 @@ void main() {
   group('UpdateSettingsUseCase', () {
     late _MockSettingsRepository repository;
     late _MockScheduler scheduler;
+    late SyncWorkoutRemindersUseCase workoutReminders;
 
     setUpAll(() => registerFallbackValue(const AppSettings()));
     setUp(() {
       repository = _MockSettingsRepository();
       scheduler = _MockScheduler();
+      workoutReminders = SyncWorkoutRemindersUseCase(repository, scheduler);
+    });
+
+    test('a new language reschedules workout reminders in it', () async {
+      when(
+        () => repository.saveSettings(any()),
+      ).thenAnswer((_) async => voidSuccess);
+      when(() => repository.workoutDays()).thenAnswer(
+        (_) async => const ApiSuccess([(weekday: 1, workoutName: 'Legs')]),
+      );
+      when(
+        () => scheduler.scheduleWorkoutReminders(
+          days: any(named: 'days'),
+          minutesOfDay: any(named: 'minutesOfDay'),
+        ),
+      ).thenAnswer((_) async {});
+
+      await UpdateSettingsUseCase(repository, scheduler, workoutReminders)(
+        previous: const AppSettings(remindersEnabled: true),
+        next: const AppSettings(remindersEnabled: true, languageCode: 'ar'),
+      );
+
+      verify(
+        () => scheduler.scheduleWorkoutReminders(
+          days: any(named: 'days'),
+          minutesOfDay: any(named: 'minutesOfDay'),
+        ),
+      ).called(1);
     });
 
     test('does not enable reminders when permission is denied', () async {
       when(() => scheduler.requestPermission()).thenAnswer((_) async => false);
 
-      final result = await UpdateSettingsUseCase(repository, scheduler)(
-        previous: const AppSettings(),
-        next: const AppSettings(remindersEnabled: true),
-      );
+      final result =
+          await UpdateSettingsUseCase(repository, scheduler, workoutReminders)(
+            previous: const AppSettings(),
+            next: const AppSettings(remindersEnabled: true),
+          );
 
       expect(result, isA<ApiFailure<void>>());
       verifyNever(() => repository.saveSettings(any()));
@@ -147,10 +177,11 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      final result = await UpdateSettingsUseCase(repository, scheduler)(
-        previous: const AppSettings(),
-        next: const AppSettings(remindersEnabled: true),
-      );
+      final result =
+          await UpdateSettingsUseCase(repository, scheduler, workoutReminders)(
+            previous: const AppSettings(),
+            next: const AppSettings(remindersEnabled: true),
+          );
 
       expect(result.isSuccess, isTrue);
       verify(
@@ -166,7 +197,7 @@ void main() {
         () => repository.saveSettings(any()),
       ).thenAnswer((_) async => voidSuccess);
 
-      await UpdateSettingsUseCase(repository, scheduler)(
+      await UpdateSettingsUseCase(repository, scheduler, workoutReminders)(
         previous: const AppSettings(),
         next: const AppSettings(soundEnabled: false),
       );

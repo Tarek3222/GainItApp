@@ -302,12 +302,10 @@ class LogGoalProgressUseCase {
 
   Future<ApiResult<double>> call(String goalId, double delta) async {
     if (!delta.isFinite || delta == 0) {
-      return const ApiFailure(ValidationFailure(['Enter an amount.']));
+      return const ApiFailure(ValidationFailure(['errors.enterAmount']));
     }
     if (delta.abs() > Validators.maxGoalProgress) {
-      return const ApiFailure(
-        ValidationFailure(['That is more than a day can hold.']),
-      );
+      return const ApiFailure(ValidationFailure(['validation.progressMax']));
     }
     final now = _clock.now();
     final change = await _repository.addProgress(
@@ -346,7 +344,7 @@ class SaveGoalUseCase {
     }
     // Removed elsewhere (e.g. another screen): don't bring it back.
     if (existing != null && !goals.any((g) => g.id == existing.id)) {
-      return const ApiFailure(NotFoundFailure('That goal no longer exists.'));
+      return const ApiFailure(NotFoundFailure());
     }
 
     final goal = _build(input, existing, goals);
@@ -360,9 +358,11 @@ class SaveGoalUseCase {
       ...Validators.dailyGoal(goal),
       if (goal.type != DailyGoalType.custom &&
           others.any((g) => g.type == goal.type))
-        'You already have a ${goal.type == DailyGoalType.water ? 'water' : 'step'} goal.',
+        goal.type == DailyGoalType.water
+            ? 'errors.duplicateWaterGoal'
+            : 'errors.duplicateStepGoal',
       if (existing == null && others.length >= Validators.maxDailyGoals)
-        'You can track up to ${Validators.maxDailyGoals} daily goals.',
+        'errors.maxGoals',
       if (goal.reminderEnabled) ...Validators.goalReminders([...others, goal]),
     ];
     if (errors.isNotEmpty) return ApiFailure(ValidationFailure(errors));
@@ -378,11 +378,7 @@ class SaveGoalUseCase {
         );
       }
       if (!granted) {
-        return const ApiFailure(
-          InvalidStateFailure(
-            'Notifications are turned off for GainIt in system settings.',
-          ),
-        );
+        return const ApiFailure(InvalidStateFailure('errors.notificationsOff'));
       }
     }
 
@@ -393,7 +389,7 @@ class SaveGoalUseCase {
     return switch (await _syncReminders()) {
       ApiSuccess() => voidSuccess,
       ApiFailure() => const ApiFailure(
-        InvalidStateFailure('Goal saved, but its reminders could not be set.'),
+        InvalidStateFailure('errors.goalSavedNoReminders'),
       ),
     };
   }
@@ -512,12 +508,16 @@ class SyncGoalRemindersUseCase {
       goals.goals,
       completedToday: reached,
     );
-    final plan = GoalReminderPlanner.planKey(reminders, dayKey: today);
-    if (await _repository.reminderPlan() case ApiSuccess(
-      data: final last,
-    ) when last == plan) {
-      return voidSuccess;
-    }
+    final plan = GoalReminderPlanner.planKey(
+      reminders,
+      dayKey: today,
+      language: _scheduler.textLanguage,
+    );
+    final unchanged = switch (await _repository.reminderPlan()) {
+      ApiSuccess(:final data) => data == plan,
+      ApiFailure() => false,
+    };
+    if (unchanged) return voidSuccess;
     if (reminders.isEmpty) {
       await _scheduler.cancelGoalReminders();
     } else {

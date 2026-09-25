@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -62,13 +63,15 @@ class NumberStepper extends StatelessWidget {
         children: [
           _StepButton(
             icon: Icons.remove,
-            semanticLabel: 'Decrease $label',
+            semanticLabel: 'stepper.decrease'.tr(namedArgs: {'label': label}),
             onPressed: value > min ? () => onChanged(_clamp(_previous)) : null,
           ),
           Expanded(
             child: Semantics(
               button: true,
-              label: '$label $_text. Tap to type.',
+              label: 'stepper.value'.tr(
+                namedArgs: {'label': label, 'value': _text},
+              ),
               child: InkWell(
                 borderRadius: AppRadius.smAll,
                 onTap: () => _enterValue(context),
@@ -100,7 +103,7 @@ class NumberStepper extends StatelessWidget {
           ),
           _StepButton(
             icon: Icons.add,
-            semanticLabel: 'Increase $label',
+            semanticLabel: 'stepper.increase'.tr(namedArgs: {'label': label}),
             onPressed: value < max ? () => onChanged(_clamp(_next)) : null,
           ),
         ],
@@ -198,9 +201,9 @@ class _NumberEntryDialogState extends State<_NumberEntryDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text('common.cancel'.tr()),
         ),
-        TextButton(onPressed: _submit, child: const Text('OK')),
+        TextButton(onPressed: _submit, child: Text('common.ok'.tr())),
       ],
     );
   }

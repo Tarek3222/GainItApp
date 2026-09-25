@@ -19,9 +19,11 @@ final class NotFoundException implements Exception {
 }
 
 final class InvalidStateException implements Exception {
-  const InvalidStateException(this.message);
+  const InvalidStateException(this.message, {this.args = const {}});
 
+  /// Translation key.
   final String message;
+  final Map<String, String> args;
 
   @override
   String toString() => 'InvalidStateException($message)';

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
@@ -44,10 +45,7 @@ class TrendChart extends StatelessWidget {
       return SizedBox(
         height: height / 2,
         child: Center(
-          child: Text(
-            'Log at least two entries to see a trend.',
-            style: theme.textTheme.bodySmall,
-          ),
+          child: Text('trend.needTwo'.tr(), style: theme.textTheme.bodySmall),
         ),
       );
     }

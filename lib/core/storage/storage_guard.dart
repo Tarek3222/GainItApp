@@ -13,7 +13,10 @@ Failure mapStorageError(Object error) {
   return switch (error) {
     ValidationException(:final errors) => ValidationFailure(errors),
     NotFoundException(:final message) => NotFoundFailure(message),
-    InvalidStateException(:final message) => InvalidStateFailure(message),
+    InvalidStateException(:final message, :final args) => InvalidStateFailure(
+      message,
+      args: args,
+    ),
     HiveError() => const StorageFailure(),
     FileSystemException() => const StorageFailure(),
     _ => const UnexpectedFailure(),

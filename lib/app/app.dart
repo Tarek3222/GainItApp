@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -16,10 +17,21 @@ class GainItApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.locale;
+    // Dates and number formats follow the app language.
+    Intl.defaultLocale = locale.languageCode;
     return BlocProvider(
       create: (_) => getIt<UnitsCubit>()..start(),
       child: MaterialApp.router(
+        // Texts are looked up when widgets build. A new key makes every
+        // widget below build again in the new language; the navigators keep
+        // their pages and state (they have global keys), so open screens
+        // stay open.
+        key: ValueKey(locale.languageCode),
         title: AppInfo.name,
+        localizationsDelegates: context.localizationDelegates,
+        supportedLocales: context.supportedLocales,
+        locale: locale,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,8 @@ import '../../../../app/router/route_paths.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../core/domain/entities/program.dart';
+import '../../../../core/l10n/enum_labels.dart';
+import '../../../../core/l10n/seed_names.dart';
 import '../../../../core/presentation/action_outcome.dart';
 import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/presentation/view_state.dart';
@@ -31,14 +34,14 @@ class WorkoutOverviewView extends StatelessWidget {
               String
             >(
               selector: (state) => state is ViewLoaded<WorkoutOverview>
-                  ? state.data.day.name
+                  ? seedName(state.data.day.name)
                   : '',
               builder: (_, title) => Text(title),
             ),
         actions: [
           Builder(
             builder: (context) => IconButton(
-              tooltip: 'Edit workout',
+              tooltip: 'overview.editWorkout'.tr(),
               icon: const Icon(Icons.edit_outlined),
               onPressed: () => context.push(
                 RoutePaths.editPlanDay(
@@ -67,15 +70,15 @@ class WorkoutOverviewView extends StatelessWidget {
                   WorkoutOverview(day: WorkoutDay(isWorkout: false)) =>
                     EmptyState(
                       icon: Icons.bedtime_outlined,
-                      title: 'Rest day',
-                      message: 'Switch it to a workout day to train.',
-                      action: edit('Edit day'),
+                      title: 'overview.restDay'.tr(),
+                      message: 'overview.restDayHint'.tr(),
+                      action: edit('overview.editDay'.tr()),
                     ),
                   WorkoutOverview(exercises: []) => EmptyState(
                     icon: Icons.playlist_add,
-                    title: 'No exercises yet',
-                    message: 'Add exercises to build this workout.',
-                    action: edit('Edit workout'),
+                    title: 'overview.noExercises'.tr(),
+                    message: 'overview.noExercisesHint'.tr(),
+                    action: edit('overview.editWorkout'.tr()),
                   ),
                   _ => _OverviewList(overview: overview),
                 },
@@ -103,25 +106,38 @@ class _OverviewList extends StatelessWidget {
     return PageBody(
       children: [
         Text(
-          '${Formatters.weekday(overview.day.weekday)} · '
-          '${overview.exercises.length} exercises · '
-          '${overview.totalSets} working sets',
+          [
+            Formatters.weekday(overview.day.weekday),
+            'common.exercises'.plural(overview.exercises.length),
+            'common.workingSets'.plural(overview.totalSets),
+          ].join(' · '),
           style: theme.textTheme.bodySmall,
         ),
         if (overview.lastCompletedAt != null)
           Text(
-            'Last done ${Formatters.fullDate(overview.lastCompletedAt!)}',
+            'overview.lastDone'.tr(
+              namedArgs: {
+                'date': Formatters.fullDate(overview.lastCompletedAt!),
+              },
+            ),
             style: theme.textTheme.bodySmall,
           ),
         const SizedBox(height: AppSpacing.md),
-        const SectionLabel('Target muscles'),
+        SectionLabel('common.targetMuscles'.tr()),
         MuscleChips(
           primary: overview.targetMuscles,
           secondary: overview.assistingMuscles,
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Sets: ${[for (final m in overview.targetMuscles) '${m.label} ${overview.plannedVolume[m]}'].join(' · ')}',
+          'overview.volume'.tr(
+            namedArgs: {
+              'list': [
+                for (final m in overview.targetMuscles)
+                  '${m.label} ${overview.plannedVolume[m]}',
+              ].join(' · '),
+            },
+          ),
           style: theme.textTheme.bodySmall,
         ),
         const SizedBox(height: AppSpacing.md),
@@ -156,13 +172,17 @@ class _ExerciseTile extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  '${index + 1}. ${exercise.name}',
+                  '${index + 1}. ${seedName(exercise.name)}',
                   style: theme.textTheme.titleMedium,
                 ),
               ),
               if (c.supersetGroup != null)
                 Chip(
-                  label: Text('Superset ${c.supersetGroup}'),
+                  label: Text(
+                    'workout.superset'.tr(
+                      namedArgs: {'n': '${c.supersetGroup}'},
+                    ),
+                  ),
                   visualDensity: VisualDensity.compact,
                 ),
             ],
@@ -175,24 +195,39 @@ class _ExerciseTile extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            '${c.workingSets} × ${Formatters.repRange(c.repMin, c.repMax)} · '
-            'RIR ${c.rirMin}–${c.rirMax} · '
-            'Rest ${Formatters.rest(c.restMinSeconds, c.restMaxSeconds)}',
+            'overview.configLine'.tr(
+              namedArgs: {
+                'sets': '${c.workingSets}',
+                'reps': Formatters.repRange(c.repMin, c.repMax),
+                'rirMin': '${c.rirMin}',
+                'rirMax': '${c.rirMax}',
+                'rest': Formatters.rest(c.restMinSeconds, c.restMaxSeconds),
+              },
+            ),
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
             rec.suggestedWeight == null
-                ? 'Target: first session — find your working weight'
-                : 'Target: ${context.units.weight(rec.suggestedWeight!)}',
+                ? 'overview.targetFirst'.tr()
+                : 'overview.target'.tr(
+                    namedArgs: {
+                      'weight': context.units.weight(rec.suggestedWeight!),
+                    },
+                  ),
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.primary,
             ),
           ),
           if (last != null)
             Text(
-              'Last: ${context.units.weight(last.topWeight)} · '
-              '${Formatters.repsList(last.sets.map((s) => s.reps))}',
+              'workout.last'.tr(
+                namedArgs: {
+                  'result':
+                      '${context.units.weight(last.topWeight)} · '
+                      '${Formatters.repsList(last.sets.map((s) => s.reps))}',
+                },
+              ),
               style: theme.textTheme.bodySmall?.copyWith(color: muted),
             ),
           if (c.notes != null)
@@ -240,7 +275,9 @@ class _StartButtonState extends State<_StartButton> {
         child: FilledButton.icon(
           onPressed: _busy ? null : _start,
           icon: const Icon(Icons.play_arrow),
-          label: Text(widget.inProgress ? 'Resume workout' : 'Start workout'),
+          label: Text(
+            (widget.inProgress ? 'overview.resume' : 'overview.start').tr(),
+          ),
         ),
       ),
     );

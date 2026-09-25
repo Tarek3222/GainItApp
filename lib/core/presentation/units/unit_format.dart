@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../domain/entities/enums.dart';
@@ -13,9 +14,9 @@ class UnitFormat {
 
   bool get isMetric => system == UnitSystem.metric;
 
-  String get weightUnit => isMetric ? 'kg' : 'lb';
+  String get weightUnit => (isMetric ? 'units.kg' : 'units.lb').tr();
 
-  String get heightUnit => isMetric ? 'cm' : 'ft';
+  String get heightUnit => (isMetric ? 'units.cm' : 'units.ft').tr();
 
   /// kg → value in the display unit (rounded to 2 decimals).
   double toDisplayWeight(double kg) => double.parse(
@@ -47,7 +48,7 @@ class UnitFormat {
     return '$sign$text $weightUnit';
   }
 
-  String get waterUnit => isMetric ? 'ml' : 'fl oz';
+  String get waterUnit => (isMetric ? 'units.ml' : 'units.flOz').tr();
 
   /// ml → value in the display unit (fl oz rounded to 1 decimal).
   double toDisplayWater(double ml) => isMetric
@@ -69,19 +70,21 @@ class UnitFormat {
 
   /// "750 ml" / "1.5 L" / "25 fl oz".
   String water(double ml) {
-    if (!isMetric) return '${_oz(ml)} fl oz';
+    if (!isMetric) return '${_oz(ml)} $waterUnit';
     return ml >= 1000
-        ? '${Formatters.weight(_litres(ml))} L'
-        : '${ml.round()} ml';
+        ? '${Formatters.weight(_litres(ml))} ${'units.litre'.tr()}'
+        : '${ml.round()} $waterUnit';
   }
 
   /// Today's water against the target in one unit: "1.25 / 3 L",
   /// "400 / 750 ml", "42 / 101 fl oz".
   String waterProgress(double ml, double targetMl) {
-    if (!isMetric) return '${_oz(ml)} / ${_oz(targetMl)} fl oz';
-    if (targetMl < 1000) return '${ml.round()} / ${targetMl.round()} ml';
+    if (!isMetric) return '${_oz(ml)} / ${_oz(targetMl)} $waterUnit';
+    if (targetMl < 1000) {
+      return '${ml.round()} / ${targetMl.round()} $waterUnit';
+    }
     return '${Formatters.weight(_litres(ml))} / '
-        '${Formatters.weight(_litres(targetMl))} L';
+        '${Formatters.weight(_litres(targetMl))} ${'units.litre'.tr()}';
   }
 
   static double _litres(double ml) => (ml / 10).round() / 100;
@@ -91,7 +94,7 @@ class UnitFormat {
 
   /// "180 cm" / "5′11″".
   String height(double cm) {
-    if (isMetric) return '${cm.round()} cm';
+    if (isMetric) return '${cm.round()} $heightUnit';
     final (:feet, :inches) = UnitConverter.cmToFeetInches(cm);
     return '$feet′$inches″';
   }

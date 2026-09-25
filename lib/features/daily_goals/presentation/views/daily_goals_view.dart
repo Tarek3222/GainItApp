@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -24,20 +25,19 @@ class DailyGoalsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Daily goals')),
+      appBar: AppBar(title: Text('goals.title'.tr())),
       floatingActionButton: const _AddGoalButton(),
       body: ViewStateBuilder<DailyGoalsCubit, List<DailyGoal>>(
         onRetry: (cubit) => cubit.start(),
         builder: (context, goals) => goals.isEmpty
             ? EmptyState(
                 icon: Icons.flag_outlined,
-                title: 'No daily goals',
-                message:
-                    'Track water, steps or anything you want to do every day.',
+                title: 'goals.empty'.tr(),
+                message: 'goals.emptyHint'.tr(),
                 action: FilledButton.icon(
                   onPressed: () => _addGoal(context, goals),
                   icon: const Icon(Icons.add),
-                  label: const Text('Add goal'),
+                  label: Text('goals.addGoal'.tr()),
                 ),
               )
             : PageBody(
@@ -67,7 +67,7 @@ class _AddGoalButton extends StatelessWidget {
           FloatingActionButton.extended(
             onPressed: () => _addGoal(context, data),
             icon: const Icon(Icons.add),
-            label: const Text('Add goal'),
+            label: Text('goals.addGoal'.tr()),
           ),
         _ => const SizedBox.shrink(),
       },
@@ -85,24 +85,24 @@ Future<void> _addGoal(BuildContext context, List<DailyGoal> goals) async {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          for (final (type, name, icon, description) in const [
+          for (final (type, name, icon, description) in [
             (
               DailyGoalType.water,
-              'Water',
+              'goals.water'.tr(),
               Icons.water_drop_outlined,
-              'Quick-add glasses through the day',
+              'goals.waterHint'.tr(),
             ),
             (
               DailyGoalType.steps,
-              'Steps',
+              'goals.steps'.tr(),
               Icons.directions_walk,
-              'Counted by your phone',
+              'goals.stepsHint'.tr(),
             ),
             (
               DailyGoalType.custom,
-              'Your own goal',
+              'goals.custom'.tr(),
               Icons.flag_outlined,
-              'Anything with a daily target',
+              'goals.customHint'.tr(),
             ),
           ])
             ListTile(
@@ -111,7 +111,7 @@ Future<void> _addGoal(BuildContext context, List<DailyGoal> goals) async {
               title: Text(name),
               subtitle: Text(
                 type != DailyGoalType.custom && taken.contains(type)
-                    ? 'Already added'
+                    ? 'goals.alreadyAdded'.tr()
                     : description,
               ),
               onTap: () => Navigator.of(sheetContext).pop(type),
@@ -124,7 +124,7 @@ Future<void> _addGoal(BuildContext context, List<DailyGoal> goals) async {
   await showGoalEditorSheet(
     context,
     initial: GoalInput.defaultsFor(type),
-    title: 'New goal',
+    title: 'goals.newGoal'.tr(),
     onSave: cubit.save,
   );
 }
@@ -149,16 +149,18 @@ class _GoalTile extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('Remove ${goal.displayName}?'),
-        content: const Text('Its progress history is removed too.'),
+        title: Text(
+          'goals.removeTitle'.tr(namedArgs: {'goal': goal.displayName}),
+        ),
+        content: Text('goals.removeMessage'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Remove'),
+            child: Text('common.remove'.tr()),
           ),
         ],
       ),
@@ -189,7 +191,11 @@ class _GoalTile extends StatelessWidget {
               children: [
                 Text(goal.displayName, style: theme.textTheme.titleMedium),
                 Text(
-                  '${goal.amountText(context.units, goal.target)} a day',
+                  'goals.perDay'.tr(
+                    namedArgs: {
+                      'amount': goal.amountText(context.units, goal.target),
+                    },
+                  ),
                   style: theme.textTheme.bodyMedium,
                 ),
                 Text(goal.reminderSummary, style: theme.textTheme.bodySmall),
@@ -197,7 +203,9 @@ class _GoalTile extends StatelessWidget {
             ),
           ),
           IconButton(
-            tooltip: 'Remove ${goal.displayName}',
+            tooltip: 'goals.removeGoal'.tr(
+              namedArgs: {'goal': goal.displayName},
+            ),
             onPressed: () => _remove(context),
             icon: const Icon(Icons.delete_outline),
           ),

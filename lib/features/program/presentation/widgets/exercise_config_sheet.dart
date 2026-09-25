@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_tokens.dart';
@@ -111,7 +112,7 @@ class _ExerciseConfigSheetState extends State<_ExerciseConfigSheet> {
           children: [
             Expanded(
               child: NumberStepper(
-                label: 'min $unit',
+                label: 'config.min'.tr(namedArgs: {'unit': unit}),
                 value: min.toDouble(),
                 step: step.toDouble(),
                 min: lowest.toDouble(),
@@ -126,7 +127,7 @@ class _ExerciseConfigSheetState extends State<_ExerciseConfigSheet> {
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: NumberStepper(
-                label: 'max $unit',
+                label: 'config.max'.tr(namedArgs: {'unit': unit}),
                 value: max.toDouble(),
                 step: step.toDouble(),
                 min: lowest.toDouble(),
@@ -155,9 +156,9 @@ class _ExerciseConfigSheetState extends State<_ExerciseConfigSheet> {
         children: [
           Text(widget.exerciseName, style: theme.textTheme.titleLarge),
           const SizedBox(height: AppSpacing.md),
-          const SectionLabel('Working sets'),
+          SectionLabel('config.workingSets'.tr()),
           NumberStepper(
-            label: 'sets',
+            label: 'config.setsUnit'.tr(),
             value: _sets.toDouble(),
             step: 1,
             min: 1,
@@ -166,8 +167,8 @@ class _ExerciseConfigSheetState extends State<_ExerciseConfigSheet> {
           ),
           const SizedBox(height: AppSpacing.md),
           _range(
-            title: 'Rep range',
-            unit: 'reps',
+            title: 'config.repRange'.tr(),
+            unit: 'workout.repsLabel'.tr(),
             min: _repMin,
             max: _repMax,
             step: 1,
@@ -179,8 +180,8 @@ class _ExerciseConfigSheetState extends State<_ExerciseConfigSheet> {
             }),
           ),
           _range(
-            title: 'Rest between sets',
-            unit: 'rest',
+            title: 'config.rest'.tr(),
+            unit: 'config.restUnit'.tr(),
             min: _restMin,
             max: _restMax,
             step: _restStep,
@@ -193,7 +194,7 @@ class _ExerciseConfigSheetState extends State<_ExerciseConfigSheet> {
             }),
           ),
           _range(
-            title: 'Reps in reserve (RIR)',
+            title: 'config.rir'.tr(),
             unit: 'RIR',
             min: _rirMin,
             max: _rirMax,
@@ -205,9 +206,9 @@ class _ExerciseConfigSheetState extends State<_ExerciseConfigSheet> {
               _rirMax = r.$2;
             }),
           ),
-          const SectionLabel('Weight increase per step (kg)'),
+          SectionLabel('config.weightStep'.tr()),
           NumberStepper(
-            label: 'kg',
+            label: 'units.kg'.tr(),
             value: _step,
             step: 0.5,
             min: 0.5,
@@ -222,11 +223,16 @@ class _ExerciseConfigSheetState extends State<_ExerciseConfigSheet> {
           const SizedBox(height: AppSpacing.md),
           DropdownButtonFormField<int?>(
             initialValue: _superset,
-            decoration: const InputDecoration(labelText: 'Superset'),
+            decoration: InputDecoration(labelText: 'config.superset'.tr()),
             items: [
-              const DropdownMenuItem(value: null, child: Text('None')),
+              DropdownMenuItem(value: null, child: Text('config.none'.tr())),
               for (var group = 1; group <= Validators.maxSupersetGroup; group++)
-                DropdownMenuItem(value: group, child: Text('Superset $group')),
+                DropdownMenuItem(
+                  value: group,
+                  child: Text(
+                    'workout.superset'.tr(namedArgs: {'n': '$group'}),
+                  ),
+                ),
             ],
             onChanged: (g) => setState(() => _superset = g),
           ),
@@ -236,13 +242,13 @@ class _ExerciseConfigSheetState extends State<_ExerciseConfigSheet> {
             minLines: 1,
             maxLines: 4,
             maxLength: Validators.maxNotes,
-            decoration: const InputDecoration(labelText: 'Notes (optional)'),
+            decoration: InputDecoration(labelText: 'config.notes'.tr()),
           ),
           const SizedBox(height: AppSpacing.md),
-          FilledButton(onPressed: _save, child: const Text('Save')),
+          FilledButton(onPressed: _save, child: Text('common.save'.tr())),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text('common.cancel'.tr()),
           ),
         ],
       ),

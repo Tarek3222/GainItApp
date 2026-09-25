@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,8 @@ import '../../../../app/theme/app_tokens.dart';
 import '../../../../core/domain/entities/enums.dart';
 import '../../../../core/domain/entities/program.dart';
 import '../../../../core/domain/validation/validators.dart';
+import '../../../../core/l10n/enum_labels.dart';
+import '../../../../core/l10n/seed_names.dart';
 import '../../../../core/presentation/action_outcome.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/state_views.dart';
@@ -22,7 +25,9 @@ class ExerciseEditorView extends StatelessWidget {
   Widget build(BuildContext context) {
     final isNew = context.read<ExerciseEditorCubit>().exerciseId == null;
     return Scaffold(
-      appBar: AppBar(title: Text(isNew ? 'New exercise' : 'Edit exercise')),
+      appBar: AppBar(
+        title: Text((isNew ? 'exercise.newExercise' : 'exercise.edit').tr()),
+      ),
       body: ViewStateBuilder<ExerciseEditorCubit, Exercise?>(
         onRetry: (cubit) => cubit.load(),
         builder: (context, exercise) => _EditorForm(existing: exercise),
@@ -53,7 +58,8 @@ class _EditorFormState extends State<_EditorForm> {
   void initState() {
     super.initState();
     final e = widget.existing;
-    _name = TextEditingController(text: e?.name ?? '');
+    // A built-in name is edited in the current language.
+    _name = TextEditingController(text: e == null ? '' : seedName(e.name));
     _instructions = TextEditingController(text: e?.instructions ?? '');
     _primary = e?.primaryMuscle ?? MuscleGroup.chest;
     _secondary = {...?e?.secondaryMuscles};
@@ -67,12 +73,22 @@ class _EditorFormState extends State<_EditorForm> {
     super.dispose();
   }
 
+  /// An unchanged translated built-in name keeps its stored name, so it
+  /// stays translated in every language.
+  String _storedName() {
+    final existing = widget.existing;
+    if (existing != null && _name.text.trim() == seedName(existing.name)) {
+      return existing.name;
+    }
+    return _name.text;
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     final outcome = await context.read<ExerciseEditorCubit>().save(
       ExerciseInput(
-        name: _name.text,
+        name: _storedName(),
         primaryMuscle: _primary,
         secondaryMuscles: [
           for (final m in MuscleGroup.values)
@@ -104,21 +120,22 @@ class _EditorFormState extends State<_EditorForm> {
             controller: _name,
             maxLength: Validators.maxExerciseName,
             textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(labelText: 'Name'),
-            validator: (v) => (v ?? '').trim().isEmpty ? 'Enter a name' : null,
+            decoration: InputDecoration(labelText: 'exercise.name'.tr()),
+            validator: (v) =>
+                (v ?? '').trim().isEmpty ? 'exercise.enterName'.tr() : null,
           ),
           const SizedBox(height: AppSpacing.sm),
-          const SectionLabel('Type'),
+          SectionLabel('exercise.type'.tr()),
           SegmentedButton<ExerciseCategory>(
             showSelectedIcon: false,
-            segments: const [
+            segments: [
               ButtonSegment(
                 value: ExerciseCategory.compound,
-                label: Text('Compound'),
+                label: Text('exercise.compoundShort'.tr()),
               ),
               ButtonSegment(
                 value: ExerciseCategory.isolation,
-                label: Text('Isolation'),
+                label: Text('exercise.isolationShort'.tr()),
               ),
             ],
             selected: {_category},
@@ -127,7 +144,7 @@ class _EditorFormState extends State<_EditorForm> {
           const SizedBox(height: AppSpacing.md),
           DropdownButtonFormField<MuscleGroup>(
             initialValue: _primary,
-            decoration: const InputDecoration(labelText: 'Main muscle'),
+            decoration: InputDecoration(labelText: 'exercise.mainMuscle'.tr()),
             items: [
               for (final m in MuscleGroup.values)
                 DropdownMenuItem(value: m, child: Text(m.label)),
@@ -138,7 +155,7 @@ class _EditorFormState extends State<_EditorForm> {
             }),
           ),
           const SizedBox(height: AppSpacing.md),
-          const SectionLabel('Also works'),
+          SectionLabel('exercise.alsoWorks'.tr()),
           Wrap(
             spacing: AppSpacing.xs,
             runSpacing: AppSpacing.xs,
@@ -160,21 +177,21 @@ class _EditorFormState extends State<_EditorForm> {
             minLines: 3,
             maxLines: 8,
             maxLength: Validators.maxNotes,
-            decoration: const InputDecoration(
-              labelText: 'How to do it (optional)',
+            decoration: InputDecoration(
+              labelText: 'exercise.howTo'.tr(),
               alignLabelWithHint: true,
-              hintText: 'Setup, cues, things to avoid…',
+              hintText: 'exercise.howToHint'.tr(),
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Add a photo or video from the exercise screen after saving.',
+            'exercise.mediaAfterSave'.tr(),
             style: theme.textTheme.bodySmall,
           ),
           const SizedBox(height: AppSpacing.lg),
           FilledButton(
             onPressed: _saving ? null : _save,
-            child: const Text('Save'),
+            child: Text('common.save'.tr()),
           ),
         ],
       ),

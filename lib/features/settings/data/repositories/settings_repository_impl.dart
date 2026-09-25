@@ -43,6 +43,9 @@ class SettingsRepositoryImpl implements SettingsRepository {
   );
 
   @override
+  Future<ApiResult<AppSettings>> settings() => guardStorage(_settings.settings);
+
+  @override
   Future<VoidResult> saveSettings(AppSettings settings) =>
       guardStorage(() => _settings.save(settings));
 

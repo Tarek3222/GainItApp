@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../core/domain/entities/enums.dart';
 import '../../../../core/domain/validation/validators.dart';
+import '../../../../core/l10n/seed_names.dart';
 import '../../../../core/presentation/action_outcome.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
@@ -25,7 +27,7 @@ class WorkoutDayEditorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit day')),
+      appBar: AppBar(title: Text('dayEditor.title'.tr())),
       body: ViewStateBuilder<WorkoutDayEditorCubit, WorkoutOverview>(
         onRetry: (cubit) => cubit.start(),
         builder: (context, overview) => _EditorBody(overview: overview),
@@ -49,9 +51,13 @@ class _EditorBody extends StatelessWidget {
     final cubit = context.read<WorkoutDayEditorCubit>();
     final name = await showDialog<String>(
       context: context,
-      builder: (_) => _RenameDialog(initial: overview.day.name),
+      builder: (_) => _RenameDialog(initial: seedName(overview.day.name)),
     );
-    if (name == null || name.trim() == overview.day.name) return;
+    if (name == null ||
+        name.trim() == overview.day.name ||
+        name.trim() == seedName(overview.day.name)) {
+      return;
+    }
     final outcome = await cubit.rename(name);
     if (context.mounted) _report(context, outcome);
   }
@@ -80,7 +86,7 @@ class _EditorBody extends StatelessWidget {
     final updated = await showExerciseConfigSheet(
       context,
       entry: e.config,
-      exerciseName: e.name,
+      exerciseName: seedName(e.name),
     );
     if (updated == null || updated == e.config) return;
     final outcome = await cubit.updateConfig(updated);
@@ -92,21 +98,21 @@ class _EditorBody extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Remove ${e.name}?'),
-        content: const Text(
-          'It is removed from this day only. Past workouts are kept.',
+        title: Text(
+          'dayEditor.removeTitle'.tr(namedArgs: {'exercise': seedName(e.name)}),
         ),
+        content: Text('dayEditor.removeMessage'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(
               foregroundColor: context.semanticColors.danger,
             ),
-            child: const Text('Remove'),
+            child: Text('common.remove'.tr()),
           ),
         ],
       ),
@@ -136,7 +142,7 @@ class _EditorBody extends StatelessWidget {
                       Formatters.weekday(day.weekday),
                       style: theme.textTheme.bodySmall,
                     ),
-                    Text(day.name, style: theme.textTheme.titleLarge),
+                    Text(seedName(day.name), style: theme.textTheme.titleLarge),
                   ],
                 ),
               ),
@@ -146,15 +152,18 @@ class _EditorBody extends StatelessWidget {
         ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          title: const Text('Workout day'),
+          title: Text('dayEditor.workoutDay'.tr()),
           subtitle: Text(
-            day.isWorkout ? 'Train on this day' : 'Rest and recover',
+            (day.isWorkout
+                    ? 'dayEditor.trainOnDay'
+                    : 'dayEditor.restAndRecover')
+                .tr(),
           ),
           value: day.isWorkout,
           onChanged: (v) => _setWorkout(context, v),
         ),
         if (day.isWorkout && overview.targetMuscles.isNotEmpty) ...[
-          const SectionLabel('Target muscles'),
+          SectionLabel('common.targetMuscles'.tr()),
           MuscleChips(
             primary: overview.targetMuscles,
             secondary: overview.assistingMuscles,
@@ -164,9 +173,12 @@ class _EditorBody extends StatelessWidget {
         ],
         if (day.isWorkout)
           SectionLabel(
-            'Exercises',
+            'dayEditor.exercises'.tr(),
             trailing: exercises.length > 1
-                ? Text('Drag to reorder', style: theme.textTheme.bodySmall)
+                ? Text(
+                    'dayEditor.dragToReorder'.tr(),
+                    style: theme.textTheme.bodySmall,
+                  )
                 : null,
           ),
       ],
@@ -179,8 +191,7 @@ class _EditorBody extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           if (exercises.isNotEmpty)
             Text(
-              'This day keeps its ${exercises.length} exercises; switch it '
-              'back to a workout day to train them.',
+              'dayEditor.keepsExercises'.plural(exercises.length),
               style: theme.textTheme.bodySmall,
             ),
         ],
@@ -200,7 +211,7 @@ class _EditorBody extends StatelessWidget {
         child: OutlinedButton.icon(
           onPressed: () => _add(context),
           icon: const Icon(Icons.add),
-          label: const Text('Add exercise'),
+          label: Text('dayEditor.addExercise'.tr()),
         ),
       ),
       buildDefaultDragHandles: false,
@@ -238,19 +249,31 @@ class _EditorBody extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(e.name, style: theme.textTheme.titleSmall),
+                      Text(seedName(e.name), style: theme.textTheme.titleSmall),
                       Text(
-                        '${c.workingSets} × '
-                        '${Formatters.repRange(c.repMin, c.repMax)} · '
-                        'Rest ${Formatters.rest(c.restMinSeconds, c.restMaxSeconds)}'
-                        '${c.supersetGroup == null ? '' : ' · Superset ${c.supersetGroup}'}',
+                        [
+                          'dayEditor.configLine'.tr(
+                            namedArgs: {
+                              'sets': '${c.workingSets}',
+                              'reps': Formatters.repRange(c.repMin, c.repMax),
+                              'rest': Formatters.rest(
+                                c.restMinSeconds,
+                                c.restMaxSeconds,
+                              ),
+                            },
+                          ),
+                          if (c.supersetGroup case final group?)
+                            'workout.superset'.tr(namedArgs: {'n': '$group'}),
+                        ].join(' · '),
                         style: theme.textTheme.bodySmall,
                       ),
                     ],
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Remove ${e.name}',
+                  tooltip: 'dayEditor.removeExercise'.tr(
+                    namedArgs: {'exercise': seedName(e.name)},
+                  ),
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () => _remove(context, e),
                 ),
@@ -290,7 +313,7 @@ class _RenameDialogState extends State<_RenameDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Day name'),
+      title: Text('dayEditor.dayName'.tr()),
       content: TextField(
         controller: _name,
         autofocus: true,
@@ -301,11 +324,11 @@ class _RenameDialogState extends State<_RenameDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text('common.cancel'.tr()),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, _name.text),
-          child: const Text('Save'),
+          child: Text('common.save'.tr()),
         ),
       ],
     );

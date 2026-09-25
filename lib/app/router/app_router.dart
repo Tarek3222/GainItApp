@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -204,11 +205,12 @@ GoRouter createRouter({String initialLocation = RoutePaths.splash}) {
           ),
           GoRoute(
             path: ':exerciseId',
-            builder: (_, state) => MultiBlocProvider(
+            builder: (context, state) => MultiBlocProvider(
               providers: [
                 BlocProvider(
                   create: (_) => getIt<ExerciseDetailsCubit>(
                     param1: state.pathParameters['exerciseId'],
+                    param2: context.locale.languageCode,
                   )..start(),
                 ),
                 BlocProvider(

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +14,7 @@ import '../../../../core/domain/entities/enums.dart';
 import '../../../../core/domain/entities/user_profile.dart';
 import '../../../../core/domain/services/media_store.dart';
 import '../../../../core/domain/validation/validators.dart';
+import '../../../../core/l10n/enum_labels.dart';
 import '../../../../core/presentation/action_outcome.dart';
 import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/utils/formatters.dart';
@@ -29,7 +31,7 @@ class SettingsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(title: Text('settings.title'.tr())),
       body: ViewStateBuilder<SettingsCubit, SettingsOverview>(
         onRetry: (cubit) => cubit.start(),
         builder: (context, overview) => _SettingsBody(overview: overview),
@@ -81,6 +83,25 @@ class _SettingsBody extends StatelessWidget {
     if (context.mounted) _report(context, outcome);
   }
 
+  static const _systemLanguage = 'system';
+
+  /// Switches the app first and waits until it shows the new language (the
+  /// texts take effect on the next frame), so reminders rescheduled while
+  /// saving are written in it.
+  Future<void> _changeLanguage(BuildContext context, String? code) async {
+    final cubit = context.read<SettingsCubit>();
+    if (code == null) {
+      await context.resetLocale();
+    } else {
+      await context.setLocale(Locale(code));
+    }
+    await WidgetsBinding.instance.endOfFrame;
+    final outcome = await cubit.changeLanguage(code);
+    if (outcome case ActionFailed(:final message) when context.mounted) {
+      showMessage(context, message);
+    }
+  }
+
   Future<void> _changeUnits(
     BuildContext context,
     UserProfile profile,
@@ -103,12 +124,12 @@ class _SettingsBody extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('Take photo'),
+              title: Text('settings.takePhoto'.tr()),
               onTap: () => Navigator.pop(context, _PhotoAction.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Choose from gallery'),
+              title: Text('settings.chooseFromGallery'.tr()),
               onTap: () => Navigator.pop(context, _PhotoAction.gallery),
             ),
             if (profile.photoPath != null)
@@ -117,7 +138,7 @@ class _SettingsBody extends StatelessWidget {
                   Icons.delete_outline,
                   color: context.semanticColors.danger,
                 ),
-                title: const Text('Remove photo'),
+                title: Text('settings.removePhoto'.tr()),
                 onTap: () => Navigator.pop(context, _PhotoAction.remove),
               ),
           ],
@@ -150,22 +171,19 @@ class _SettingsBody extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete all local data?'),
-        content: const Text(
-          'Your profile, workouts, sets and body-weight logs will be '
-          'permanently deleted from this device. This cannot be undone.',
-        ),
+        title: Text('settings.deleteTitle'.tr()),
+        content: Text('settings.deleteMessage'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(
               foregroundColor: context.semanticColors.danger,
             ),
-            child: const Text('Delete'),
+            child: Text('settings.delete'.tr()),
           ),
         ],
       ),
@@ -207,10 +225,16 @@ class _SettingsBody extends StatelessWidget {
                       Text(
                         [
                           context.units.height(profile.heightCm),
-                          if (overview.age case final age?) '$age years',
+                          if (overview.age case final age?)
+                            'pickers.ageYears'.tr(namedArgs: {'age': '$age'}),
                           profile.goal.label,
-                          'since '
-                              '${Formatters.shortDate(profile.trainingStartDate)}',
+                          'settings.since'.tr(
+                            namedArgs: {
+                              'date': Formatters.shortDate(
+                                profile.trainingStartDate,
+                              ),
+                            },
+                          ),
                         ].join(' · '),
                         style: theme.textTheme.bodySmall,
                       ),
@@ -222,89 +246,107 @@ class _SettingsBody extends StatelessWidget {
             ),
           ),
         const SizedBox(height: AppSpacing.lg),
-        const SectionLabel('Rest timer'),
+        SectionLabel('settings.restTimer'.tr()),
         SwitchListTile(
-          title: const Text('Start automatically after a set'),
+          title: Text('settings.autoStart'.tr()),
           value: settings.autoStartRestTimer,
           onChanged: (v) =>
               _update(context, (s) => s.copyWith(autoStartRestTimer: v)),
         ),
         SwitchListTile(
-          title: const Text('Alert when rest is over'),
-          subtitle: const Text(
-            'Notification while the app is in the background',
-          ),
+          title: Text('settings.restAlert'.tr()),
+          subtitle: Text('settings.restAlertHint'.tr()),
           value: settings.restAlertsEnabled,
           onChanged: (v) =>
               _update(context, (s) => s.copyWith(restAlertsEnabled: v)),
         ),
         SwitchListTile(
-          title: const Text('Sound'),
+          title: Text('settings.sound'.tr()),
           value: settings.soundEnabled,
           onChanged: (v) =>
               _update(context, (s) => s.copyWith(soundEnabled: v)),
         ),
         SwitchListTile(
-          title: const Text('Vibration'),
+          title: Text('settings.vibration'.tr()),
           value: settings.vibrationEnabled,
           onChanged: (v) =>
               _update(context, (s) => s.copyWith(vibrationEnabled: v)),
         ),
         const SizedBox(height: AppSpacing.md),
-        const SectionLabel('Notifications'),
+        SectionLabel('settings.notifications'.tr()),
         SwitchListTile(
-          title: const Text('Workout reminders'),
-          subtitle: const Text('On scheduled training days'),
+          title: Text('settings.workoutReminders'.tr()),
+          subtitle: Text('settings.workoutRemindersHint'.tr()),
           value: settings.remindersEnabled,
           onChanged: (v) =>
               _update(context, (s) => s.copyWith(remindersEnabled: v)),
         ),
         ListTile(
           enabled: settings.remindersEnabled,
-          title: const Text('Reminder time'),
+          title: Text('settings.reminderTime'.tr()),
           trailing: Text(Formatters.timeOfDay(settings.reminderMinutesOfDay)),
           onTap: () => _pickReminderTime(context),
         ),
         const SizedBox(height: AppSpacing.md),
-        const SectionLabel('General'),
+        SectionLabel('settings.general'.tr()),
+        ListTile(
+          title: Text('settings.language'.tr()),
+          trailing: DropdownButton<String>(
+            value: settings.languageCode ?? _systemLanguage,
+            underline: const SizedBox.shrink(),
+            items: [
+              DropdownMenuItem(
+                value: _systemLanguage,
+                child: Text('settings.languageSystem'.tr()),
+              ),
+              // Each language is named in itself.
+              const DropdownMenuItem(value: 'en', child: Text('English')),
+              const DropdownMenuItem(value: 'ar', child: Text('العربية')),
+            ],
+            onChanged: (code) =>
+                _changeLanguage(context, code == _systemLanguage ? null : code),
+          ),
+        ),
         if (profile != null)
           ListTile(
-            title: const Text('Units'),
+            title: Text('settings.units'.tr()),
             trailing: UnitSystemToggle(
               value: profile.unitSystem,
               onChanged: (u) => _changeUnits(context, profile, u),
             ),
           ),
         ListTile(
-          title: const Text('Daily goals'),
-          subtitle: const Text('Water, steps and reminders'),
+          title: Text('settings.dailyGoals'.tr()),
+          subtitle: Text('settings.dailyGoalsHint'.tr()),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.push(RoutePaths.dailyGoals),
         ),
         ListTile(
-          title: const Text('Body weight log'),
+          title: Text('settings.bodyWeightLog'.tr()),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.push(RoutePaths.bodyWeight),
         ),
         ListTile(
-          title: const Text('Workout history'),
+          title: Text('settings.workoutHistory'.tr()),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.push(RoutePaths.history),
         ),
         const SizedBox(height: AppSpacing.md),
-        const SectionLabel('Data'),
+        SectionLabel('settings.data'.tr()),
         ListTile(
           title: Text(
-            'Delete local data',
+            'settings.deleteData'.tr(),
             style: TextStyle(color: context.semanticColors.danger),
           ),
-          subtitle: const Text('Removes everything stored on this device'),
+          subtitle: Text('settings.deleteDataHint'.tr()),
           onTap: () => _deleteAll(context),
         ),
         const SizedBox(height: AppSpacing.md),
         Center(
           child: Text(
-            '${AppInfo.name} v${AppInfo.version}',
+            'settings.version'.tr(
+              namedArgs: {'app': AppInfo.name, 'version': AppInfo.version},
+            ),
             style: theme.textTheme.bodySmall,
           ),
         ),
@@ -342,7 +384,7 @@ class ProfileAvatar extends StatelessWidget {
         : profile.name.characters.first.toUpperCase();
     return Semantics(
       button: onTap != null,
-      label: 'Profile photo. Tap to change.',
+      label: 'settings.photoLabel'.tr(),
       child: GestureDetector(
         onTap: onTap,
         child: Stack(
@@ -455,13 +497,13 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
         shrinkWrap: true,
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
-          Text('Edit profile', style: theme.textTheme.titleLarge),
+          Text('settings.editProfile'.tr(), style: theme.textTheme.titleLarge),
           const SizedBox(height: AppSpacing.md),
           TextField(
             controller: _name,
             maxLength: 40,
             textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(labelText: 'Name'),
+            decoration: InputDecoration(labelText: 'settings.name'.tr()),
           ),
           const SizedBox(height: AppSpacing.sm),
           HeightPicker(
@@ -482,7 +524,7 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
           const SizedBox(height: AppSpacing.md),
           DropdownButtonFormField<TrainingGoal>(
             initialValue: _goal,
-            decoration: const InputDecoration(labelText: 'Goal'),
+            decoration: InputDecoration(labelText: 'settings.goal'.tr()),
             items: [
               for (final goal in TrainingGoal.values)
                 DropdownMenuItem(value: goal, child: Text(goal.label)),
@@ -490,10 +532,10 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
             onChanged: (g) => setState(() => _goal = g ?? _goal),
           ),
           const SizedBox(height: AppSpacing.lg),
-          FilledButton(onPressed: _save, child: const Text('Save')),
+          FilledButton(onPressed: _save, child: Text('common.save'.tr())),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text('common.cancel'.tr()),
           ),
         ],
       ),

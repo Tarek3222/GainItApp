@@ -6,6 +6,8 @@ import '../entities/settings_overview.dart';
 abstract interface class SettingsRepository {
   Stream<ApiResult<SettingsOverview>> watchOverview();
 
+  Future<ApiResult<AppSettings>> settings();
+
   Future<VoidResult> saveSettings(AppSettings settings);
 
   Future<VoidResult> saveProfile(UserProfile profile);

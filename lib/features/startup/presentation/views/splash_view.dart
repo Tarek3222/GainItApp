@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../core/constants/app_info.dart';
+import '../../../../core/l10n/seed_names.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/state_views.dart';
 import '../../domain/entities/startup_status.dart';
@@ -83,12 +85,22 @@ class _ResumePrompt extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('Resume workout?', style: theme.textTheme.headlineSmall),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(workout.workoutName, style: theme.textTheme.titleMedium),
                   Text(
-                    '${workout.completedSets} of ${workout.totalSets} '
-                    'sets completed',
+                    'splash.resumeTitle'.tr(),
+                    style: theme.textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    seedName(workout.workoutName),
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  Text(
+                    'splash.setsCompleted'.tr(
+                      namedArgs: {
+                        'done': '${workout.completedSets}',
+                        'total': '${workout.totalSets}',
+                      },
+                    ),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: context.semanticColors.mutedText,
                     ),
@@ -97,12 +109,12 @@ class _ResumePrompt extends StatelessWidget {
                   FilledButton(
                     onPressed: () =>
                         context.go(RoutePaths.workout(workout.sessionId)),
-                    child: const Text('Resume'),
+                    child: Text('splash.resume'.tr()),
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   OutlinedButton(
                     onPressed: () => cubit.discard(workout.sessionId),
-                    child: const Text('Discard'),
+                    child: Text('splash.discard'.tr()),
                   ),
                 ],
               ),

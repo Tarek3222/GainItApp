@@ -9,7 +9,11 @@ class AppSettings extends Equatable {
     this.vibrationEnabled = true,
     this.remindersEnabled = false,
     this.reminderMinutesOfDay = 18 * 60,
+    this.languageCode,
   });
+
+  /// Languages the app is translated into.
+  static const supportedLanguageCodes = ['en', 'ar'];
 
   final bool autoStartRestTimer;
 
@@ -22,6 +26,10 @@ class AppSettings extends Equatable {
   /// Local time of the workout reminder, as minutes after midnight.
   final int reminderMinutesOfDay;
 
+  /// App language (see [supportedLanguageCodes]); `null` follows the
+  /// phone's language.
+  final String? languageCode;
+
   AppSettings copyWith({
     bool? autoStartRestTimer,
     bool? restAlertsEnabled,
@@ -29,6 +37,8 @@ class AppSettings extends Equatable {
     bool? vibrationEnabled,
     bool? remindersEnabled,
     int? reminderMinutesOfDay,
+    String? languageCode,
+    bool useSystemLanguage = false,
   }) {
     return AppSettings(
       autoStartRestTimer: autoStartRestTimer ?? this.autoStartRestTimer,
@@ -37,6 +47,9 @@ class AppSettings extends Equatable {
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
       remindersEnabled: remindersEnabled ?? this.remindersEnabled,
       reminderMinutesOfDay: reminderMinutesOfDay ?? this.reminderMinutesOfDay,
+      languageCode: useSystemLanguage
+          ? null
+          : languageCode ?? this.languageCode,
     );
   }
 
@@ -48,5 +61,6 @@ class AppSettings extends Equatable {
     vibrationEnabled,
     remindersEnabled,
     reminderMinutesOfDay,
+    languageCode,
   ];
 }

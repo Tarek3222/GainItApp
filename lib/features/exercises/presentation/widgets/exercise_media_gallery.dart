@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -125,18 +126,20 @@ class _ExerciseMediaGalleryState extends State<ExerciseMediaGallery> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isVideo ? 'Remove video?' : 'Remove photo?'),
+        title: Text(
+          (isVideo ? 'gallery.removeVideo' : 'gallery.removePhoto').tr(),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(
               foregroundColor: context.semanticColors.danger,
             ),
-            child: const Text('Remove'),
+            child: Text('common.remove'.tr()),
           ),
         ],
       ),
@@ -220,21 +223,25 @@ class _ExerciseMediaGalleryState extends State<ExerciseMediaGallery> {
                 onPressed: canAddPhoto ? widget.onAddImage : null,
                 icon: const Icon(Icons.add_a_photo_outlined),
                 label: Text(
-                  'Add photo ($photoCount/${Validators.maxExerciseImages})',
+                  'gallery.addPhoto'.tr(
+                    namedArgs: {
+                      'count': '$photoCount',
+                      'max': '${Validators.maxExerciseImages}',
+                    },
+                  ),
                 ),
               ),
               OutlinedButton.icon(
                 onPressed: widget.onAddVideo,
                 icon: const Icon(Icons.video_call_outlined),
-                label: Text(hasVideo ? 'Replace video' : 'Add video'),
+                label: Text(
+                  (hasVideo ? 'gallery.replaceVideo' : 'gallery.addVideo').tr(),
+                ),
               ),
             ],
           ),
           if (!canAddPhoto)
-            Text(
-              'Photo limit reached. Remove one to add another.',
-              style: theme.textTheme.bodySmall,
-            ),
+            Text('gallery.photoLimit'.tr(), style: theme.textTheme.bodySmall),
         ],
       ],
     );
@@ -280,7 +287,9 @@ class _SlideViewState extends State<_SlideView>
       ),
       _ImageSlide(:final image, :final number, :final total) => Semantics(
         button: true,
-        label: 'Photo $number of $total. Tap to view full screen.',
+        label: 'gallery.photoOfTap'.tr(
+          namedArgs: {'n': '$number', 'total': '$total'},
+        ),
         child: GestureDetector(
           onTap: () => onOpen(image),
           child: Image.file(
@@ -304,8 +313,10 @@ class _SlideViewState extends State<_SlideView>
             start: AppSpacing.xs,
             child: IconButton.filledTonal(
               tooltip: switch (slide) {
-                _VideoSlide() => 'Remove video',
-                _ImageSlide(:final number) => 'Remove photo $number',
+                _VideoSlide() => 'gallery.removeVideoTooltip'.tr(),
+                _ImageSlide(:final number) => 'gallery.removePhotoN'.tr(
+                  namedArgs: {'n': '$number'},
+                ),
               },
               onPressed: remove,
               icon: const Icon(Icons.delete_outline),
@@ -331,7 +342,7 @@ class _EmptyMedia extends StatelessWidget {
           Icon(Icons.photo_library_outlined, size: 40, color: muted),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            editable ? 'Add photos or a video of your form' : 'No media',
+            (editable ? 'gallery.emptyEditable' : 'gallery.empty').tr(),
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(color: muted),
@@ -353,7 +364,9 @@ class _Dots extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Semantics(
       liveRegion: true,
-      label: 'Item ${current + 1} of $count',
+      label: 'gallery.itemOf'.tr(
+        namedArgs: {'n': '${current + 1}', 'count': '$count'},
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -439,7 +452,9 @@ class _PhotoViewerState extends State<_PhotoViewer> {
             },
             itemBuilder: (context, index) => Semantics(
               image: true,
-              label: 'Photo ${index + 1} of $total',
+              label: 'gallery.photoOf'.tr(
+                namedArgs: {'n': '${index + 1}', 'total': '$total'},
+              ),
               child: InteractiveViewer(
                 // Only the visible photo shares the zoom controller.
                 transformationController: index == _page ? _zoom : null,
@@ -463,7 +478,7 @@ class _PhotoViewerState extends State<_PhotoViewer> {
             child: Align(
               alignment: AlignmentDirectional.topEnd,
               child: IconButton(
-                tooltip: 'Close',
+                tooltip: 'gallery.close'.tr(),
                 color: Colors.white,
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close),

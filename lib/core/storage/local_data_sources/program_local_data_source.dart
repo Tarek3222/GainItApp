@@ -77,9 +77,7 @@ class ProgramLocalDataSource {
           e.name.trim().toLowerCase() == name,
     );
     if (clash) {
-      throw const ValidationException([
-        'An exercise with this name already exists.',
-      ]);
+      throw const ValidationException(['errors.exerciseNameTaken']);
     }
     await _storage.exercises.put(exercise.id, exercise);
   }
@@ -124,15 +122,13 @@ class ProgramLocalDataSource {
     requireDay(entry.workoutDayId);
     final exercise = requireExercise(entry.exerciseId);
     if (exercise.isArchived) {
-      throw const InvalidStateException('This exercise was removed.');
+      throw const InvalidStateException('errors.exerciseRemoved');
     }
     final duplicate = programExercisesForDay(
       entry.workoutDayId,
     ).any((p) => p.exerciseId == entry.exerciseId && p.id != entry.id);
     if (duplicate) {
-      throw const InvalidStateException(
-        'This exercise is already in the workout.',
-      );
+      throw const InvalidStateException('errors.exerciseAlreadyInDay');
     }
     ensureValid(Validators.programExercise(entry));
     final others = [
@@ -162,9 +158,7 @@ class ProgramLocalDataSource {
     final currentIds = {for (final p in current) p.id};
     if (orderedIds.length != current.length ||
         !orderedIds.toSet().containsAll(currentIds)) {
-      throw const InvalidStateException(
-        'The exercise list changed. Please try again.',
-      );
+      throw const InvalidStateException('errors.exerciseListChanged');
     }
     final byId = {for (final p in current) p.id: p};
     await _writeOrder(

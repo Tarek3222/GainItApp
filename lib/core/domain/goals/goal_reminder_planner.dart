@@ -34,12 +34,18 @@ abstract final class GoalReminderPlanner {
   /// Identifies a plan, to skip rescheduling one that is already set.
   /// A plan that skips today is only valid on [dayKey], so the day is part
   /// of its key; the next day's plan always differs and is rescheduled.
-  static String planKey(List<GoalReminder> reminders, {required int dayKey}) =>
-      jsonEncode({
-        if (reminders.any((r) => r.skipToday)) 'day': dayKey,
-        'reminders': [
-          for (final r in reminders)
-            [r.type.index, r.title, r.minutesOfDay, r.skipToday],
-        ],
-      });
+  /// The texts' [language] is part of it too, so a new app or phone
+  /// language reschedules the reminders in that language.
+  static String planKey(
+    List<GoalReminder> reminders, {
+    required int dayKey,
+    required String language,
+  }) => jsonEncode({
+    'language': language,
+    if (reminders.any((r) => r.skipToday)) 'day': dayKey,
+    'reminders': [
+      for (final r in reminders)
+        [r.type.index, r.title, r.minutesOfDay, r.skipToday],
+    ],
+  });
 }

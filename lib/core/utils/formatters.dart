@@ -1,4 +1,4 @@
-import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// Display formatting shared by every feature.
 abstract final class Formatters {
@@ -10,11 +10,11 @@ abstract final class Formatters {
     return text.endsWith('0') ? text.substring(0, text.length - 1) : text;
   }
 
-  static String kg(num value) => '${weight(value)} kg';
+  static String kg(num value) => '${weight(value)} ${'units.kg'.tr()}';
 
   static String signedKg(num value) {
     final sign = value > 0 ? '+' : (value < 0 ? '−' : '±');
-    return '$sign${weight(value.abs())} kg';
+    return '$sign${weight(value.abs())} ${'units.kg'.tr()}';
   }
 
   /// Rest in seconds → "2 min", "1–1.5 min", "90 s", "—".
@@ -28,15 +28,16 @@ abstract final class Formatters {
           : minutes.toStringAsFixed(1);
     }
 
-    final unit = maxSeconds < 60 ? 's' : 'min';
+    final unit = (maxSeconds < 60 ? 'units.sec' : 'units.min').tr();
     if (minSeconds == maxSeconds || maxSeconds <= 0) {
       return '${part(minSeconds)} $unit';
     }
     return '${part(minSeconds)}–${part(maxSeconds)} $unit';
   }
 
-  static String repRange(int min, int max) =>
-      min == max ? '$min reps' : '$min–$max reps';
+  static String repRange(int min, int max) => 'formats.reps'.tr(
+    namedArgs: {'range': min == max ? '$min' : '$min–$max'},
+  );
 
   /// "10/9/8"
   static String repsList(Iterable<int> reps) => reps.join('/');
@@ -51,21 +52,28 @@ abstract final class Formatters {
   /// "52 min", "1 h 05 min"
   static String duration(Duration d) {
     final minutes = d.inMinutes;
-    if (minutes < 60) return '$minutes min';
-    return '${minutes ~/ 60} h ${(minutes % 60).toString().padLeft(2, '0')} min';
+    if (minutes < 60) return '$minutes ${'units.min'.tr()}';
+    return '${minutes ~/ 60} ${'units.hourShort'.tr()} '
+        '${(minutes % 60).toString().padLeft(2, '0')} ${'units.minShort'.tr()}';
   }
 
-  static String shortDate(DateTime d) => DateFormat('MMM d').format(d);
+  // Dates use the app language (`Intl.defaultLocale`) with Western digits,
+  // like every other number in the app.
+  static DateFormat _latin(DateFormat format) =>
+      format..useNativeDigits = false;
 
-  static String fullDate(DateTime d) => DateFormat('EEE, MMM d, y').format(d);
+  static String shortDate(DateTime d) => _latin(DateFormat.MMMd()).format(d);
 
-  static String weekday(int weekday) =>
-      DateFormat('EEEE').format(DateTime(2024, 1, weekday)); // 2024-01-01 = Mon
+  static String fullDate(DateTime d) => _latin(DateFormat.yMMMEd()).format(d);
+
+  static String weekday(int weekday) => _latin(
+    DateFormat.EEEE(),
+  ).format(DateTime(2024, 1, weekday)); // 2024-01-01 = Mon
 
   static String weekdayShort(int weekday) =>
-      DateFormat('EEE').format(DateTime(2024, 1, weekday));
+      _latin(DateFormat.E()).format(DateTime(2024, 1, weekday));
 
-  static String timeOfDay(int minutesOfDay) => DateFormat.jm().format(
-    DateTime(2024, 1, 1, minutesOfDay ~/ 60, minutesOfDay % 60),
-  );
+  static String timeOfDay(int minutesOfDay) => _latin(
+    DateFormat.jm(),
+  ).format(DateTime(2024, 1, 1, minutesOfDay ~/ 60, minutesOfDay % 60));
 }

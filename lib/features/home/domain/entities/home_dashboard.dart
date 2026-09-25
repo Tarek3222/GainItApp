@@ -114,6 +114,9 @@ class HomeProgress extends Equatable {
   ];
 }
 
+/// Part of the day, for the greeting.
+enum GreetingTime { morning, afternoon, evening }
+
 class HomeDashboard extends Equatable {
   const HomeDashboard({
     required this.greeting,
@@ -130,7 +133,7 @@ class HomeDashboard extends Equatable {
     this.lastProgress,
   });
 
-  final String greeting;
+  final GreetingTime greeting;
   final String name;
   final int weekNumber;
   final String programName;

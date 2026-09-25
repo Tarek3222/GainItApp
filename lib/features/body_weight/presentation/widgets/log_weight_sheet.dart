@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_tokens.dart';
@@ -40,7 +41,7 @@ class _LogWeightSheetState extends State<_LogWeightSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Log body weight',
+              'bodyWeight.logTitle'.tr(),
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: AppSpacing.md),
@@ -52,7 +53,7 @@ class _LogWeightSheetState extends State<_LogWeightSheet> {
             const SizedBox(height: AppSpacing.lg),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(_kg),
-              child: const Text('Save'),
+              child: Text('common.save'.tr()),
             ),
           ],
         ),

@@ -194,7 +194,8 @@ void configureDependencies({
     ..registerFactory(() => AddBodyWeightUseCase(getIt(), getIt(), getIt()))
     ..registerFactory(() => DeleteBodyWeightUseCase(getIt()))
     ..registerFactory(() => WatchSettingsUseCase(getIt(), getIt()))
-    ..registerFactory(() => UpdateSettingsUseCase(getIt(), getIt()))
+    ..registerFactory(() => SyncWorkoutRemindersUseCase(getIt(), getIt()))
+    ..registerFactory(() => UpdateSettingsUseCase(getIt(), getIt(), getIt()))
     ..registerFactory(() => WatchUnitSystemUseCase(getIt()))
     ..registerFactory(() => WatchExerciseLibraryUseCase(getIt()))
     ..registerFactory(() => WatchExerciseDetailsUseCase(getIt(), getIt()))
@@ -238,9 +239,10 @@ void configureDependencies({
   getIt
     ..registerFactory(() => UnitsCubit(getIt()))
     ..registerFactory(() => ExerciseLibraryCubit(watchLibrary: getIt()))
-    ..registerFactoryParam<ExerciseDetailsCubit, String, void>(
-      (exerciseId, _) => ExerciseDetailsCubit(
+    ..registerFactoryParam<ExerciseDetailsCubit, String, String>(
+      (exerciseId, languageCode) => ExerciseDetailsCubit(
         exerciseId: exerciseId,
+        languageCode: languageCode,
         watchDetails: getIt(),
         attachMedia: getIt(),
         removeMedia: getIt(),
@@ -267,7 +269,12 @@ void configureDependencies({
       ),
     )
     ..registerFactory(
-      () => SplashCubit(getStatus: getIt(), abandonWorkout: getIt()),
+      () => SplashCubit(
+        getStatus: getIt(),
+        abandonWorkout: getIt(),
+        syncReminders: getIt(),
+        syncWorkoutReminders: getIt(),
+      ),
     )
     ..registerFactory(
       () => OnboardingCubit(completeOnboarding: getIt(), clock: getIt()),
@@ -346,6 +353,7 @@ void configureDependencies({
         updatePhoto: getIt(),
         removePhoto: getIt(),
         deleteAllData: getIt(),
+        syncGoalReminders: getIt(),
       ),
     );
 }

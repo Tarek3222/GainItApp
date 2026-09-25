@@ -143,7 +143,7 @@ void main() {
         isA<ApiFailure<void>>().having(
           (f) => (f.failure as ValidationFailure).errors,
           'errors',
-          contains('Weight must be above 0.'),
+          contains('validation.weightAboveZero'),
         ),
       );
       verifyNever(() => repository.saveSet(any()));

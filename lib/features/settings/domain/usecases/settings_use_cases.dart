@@ -22,12 +22,19 @@ class WatchSettingsUseCase {
   );
 }
 
-/// Saves preferences and keeps workout reminders in sync with them.
+/// Saves preferences and keeps workout reminders in sync with them. A new
+/// language reschedules them so their text is in it; call it after the app
+/// has switched to the new language.
 class UpdateSettingsUseCase {
-  const UpdateSettingsUseCase(this._repository, this._scheduler);
+  const UpdateSettingsUseCase(
+    this._repository,
+    this._scheduler,
+    this._workoutReminders,
+  );
 
   final SettingsRepository _repository;
   final NotificationScheduler _scheduler;
+  final SyncWorkoutRemindersUseCase _workoutReminders;
 
   Future<VoidResult> call({
     required AppSettings previous,
@@ -40,40 +47,64 @@ class UpdateSettingsUseCase {
     if (next.remindersEnabled && !previous.remindersEnabled) {
       final granted = await _scheduler.requestPermission();
       if (!granted) {
-        return const ApiFailure(
-          InvalidStateFailure(
-            'Notifications are turned off for GainIt in system settings.',
-          ),
-        );
+        return const ApiFailure(InvalidStateFailure('errors.notificationsOff'));
       }
     }
 
+    final languageChanged = previous.languageCode != next.languageCode;
     final saved = await _repository.saveSettings(next);
-    if (saved is ApiFailure<void> || !remindersChanged) return saved;
-    return _syncReminders(next);
+    if (saved is ApiFailure<void>) return saved;
+    if (!remindersChanged && !(languageChanged && next.remindersEnabled)) {
+      return saved;
+    }
+    return _workoutReminders(next);
   }
+}
 
-  Future<VoidResult> _syncReminders(AppSettings settings) async {
+/// Schedules (or cancels) the weekly workout reminders from the settings.
+/// Also runs at every launch, so reminders follow a changed phone language.
+class SyncWorkoutRemindersUseCase {
+  const SyncWorkoutRemindersUseCase(this._repository, this._scheduler);
+
+  final SettingsRepository _repository;
+  final NotificationScheduler _scheduler;
+
+  /// [settings] default to the stored ones.
+  Future<VoidResult> call([AppSettings? settings]) async {
     try {
-      if (!settings.remindersEnabled) {
-        await _scheduler.cancelWorkoutReminders();
-        return voidSuccess;
+      final AppSettings current;
+      if (settings != null) {
+        current = settings;
+      } else {
+        switch (await _repository.settings()) {
+          case ApiFailure(:final failure):
+            return ApiFailure(failure);
+          case ApiSuccess(:final data):
+            current = data;
+        }
       }
-      final days = await _repository.workoutDays();
-      switch (days) {
-        case ApiFailure(:final failure):
-          return ApiFailure(failure);
-        case ApiSuccess(:final data):
-          await _scheduler.scheduleWorkoutReminders(
-            days: data,
-            minutesOfDay: settings.reminderMinutesOfDay,
-          );
-          return voidSuccess;
-      }
+      return await _schedule(current);
     } on Object {
       return const ApiFailure(
         UnexpectedFailure('Could not schedule reminders.'),
       );
+    }
+  }
+
+  Future<VoidResult> _schedule(AppSettings settings) async {
+    if (!settings.remindersEnabled) {
+      await _scheduler.cancelWorkoutReminders();
+      return voidSuccess;
+    }
+    switch (await _repository.workoutDays()) {
+      case ApiFailure(:final failure):
+        return ApiFailure(failure);
+      case ApiSuccess(:final data):
+        await _scheduler.scheduleWorkoutReminders(
+          days: data,
+          minutesOfDay: settings.reminderMinutesOfDay,
+        );
+        return voidSuccess;
     }
   }
 }

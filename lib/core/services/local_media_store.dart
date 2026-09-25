@@ -54,7 +54,7 @@ class LocalMediaStore implements MediaStore {
       maxDuration: _maxVideoLength,
     ),
     maxBytes: maxVideoBytes,
-    tooLarge: 'Videos must be under 150 MB. Trim the clip and try again.',
+    tooLarge: 'media.videoTooLarge',
   );
 
   static ImageSource _source(MediaSource source) => switch (source) {
@@ -72,16 +72,14 @@ class LocalMediaStore implements MediaStore {
       if (picked == null) return const ApiSuccess(null);
       if (maxBytes != null && await picked.length() > maxBytes) {
         await _removePickerCopy(picked.path);
-        return ApiFailure(ValidationFailure([tooLarge ?? 'File too large.']));
+        return ApiFailure(
+          ValidationFailure([tooLarge ?? 'media.fileTooLarge']),
+        );
       }
       return ApiSuccess(await _keep(picked));
     } on PlatformException catch (error) {
       if (kDebugMode) debugPrint('LocalMediaStore.pick: $error');
-      return const ApiFailure(
-        UnexpectedFailure(
-          'Could not open the camera or gallery. Check app permissions.',
-        ),
-      );
+      return const ApiFailure(InvalidStateFailure('media.pickFailed'));
     } on FileSystemException catch (error) {
       if (kDebugMode) debugPrint('LocalMediaStore.pick: $error');
       return const ApiFailure(StorageFailure('Could not save the file.'));
