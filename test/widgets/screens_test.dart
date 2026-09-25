@@ -184,6 +184,34 @@ void main() {
       expect(find.text('Set 1 of 3'), findsOneWidget);
     });
 
+    testWidgets('only a set logged while the panel is shown pops in', (
+      tester,
+    ) async {
+      Widget panel(int loggedSets) => _app(
+        ExercisePanel(
+          exercise: exercise(loggedSets: loggedSets),
+          onLogSet: (_, _, _) async {},
+          onUndoSet: (_) {},
+          onToggleSkip: () {},
+        ),
+      );
+      // On-screen width (transforms included) over the icon's 20 px.
+      double checkScale(int index) =>
+          tester.getRect(find.byIcon(Icons.check_circle).at(index)).width / 20;
+
+      // Swiping back to an exercise: its sets are simply there.
+      await tester.pumpWidget(panel(1));
+      expect(checkScale(0), 1);
+
+      await tester.pumpWidget(panel(2));
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(checkScale(0), 1);
+      expect(checkScale(1), lessThan(1));
+
+      await tester.pumpAndSettle();
+      expect(checkScale(1), closeTo(1, 0.001));
+    });
+
     testWidgets('completing a set sends the edited values', (tester) async {
       (double, int, int?)? logged;
       await tester.pumpWidget(

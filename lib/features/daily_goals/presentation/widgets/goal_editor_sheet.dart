@@ -22,6 +22,7 @@ Future<bool> showGoalEditorSheet(
 }) async {
   final saved = await showModalBottomSheet<bool>(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     showDragHandle: true,
     builder: (_) =>

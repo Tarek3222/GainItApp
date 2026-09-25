@@ -11,6 +11,7 @@ import '../../../../core/l10n/seed_names.dart';
 import '../../../../core/presentation/units/unit_format.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_card.dart';
+import '../../../../core/widgets/motion.dart';
 import '../../../../core/widgets/number_stepper.dart';
 import '../../domain/entities/active_workout.dart';
 
@@ -19,7 +20,7 @@ typedef LogSetCallback =
 
 /// One exercise in the active workout: target, last result, logged sets and
 /// the editor for the next set. Large controls, very little text (spec §16).
-class ExercisePanel extends StatelessWidget {
+class ExercisePanel extends StatefulWidget {
   const ExercisePanel({
     super.key,
     required this.exercise,
@@ -38,7 +39,19 @@ class ExercisePanel extends StatelessWidget {
   final VoidCallback onToggleSkip;
 
   @override
+  State<ExercisePanel> createState() => _ExercisePanelState();
+}
+
+class _ExercisePanelState extends State<ExercisePanel> {
+  /// Sets already logged when the panel appeared. Only sets logged since
+  /// then pop in, not every set each time the exercise is swiped back to.
+  late final Set<String> _loggedBefore = {
+    for (final set in widget.exercise.sets) set.id,
+  };
+
+  @override
   Widget build(BuildContext context) {
+    final exercise = widget.exercise;
     final snapshot = exercise.snapshot;
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -55,9 +68,10 @@ class ExercisePanel extends StatelessWidget {
         for (final set in exercise.sets)
           _LoggedSetRow(
             set: set,
+            justLogged: !_loggedBefore.contains(set.id),
             // Only the latest set can be undone (keeps set numbers contiguous).
             onUndo: identical(set, exercise.sets.last)
-                ? () => onUndoSet(set)
+                ? () => widget.onUndoSet(set)
                 : null,
           ),
         if (exercise.isSkipped)
@@ -72,13 +86,13 @@ class ExercisePanel extends StatelessWidget {
           SetEditor(
             key: ValueKey('${snapshot.id}-${exercise.nextSetNumber}'),
             exercise: exercise,
-            isResting: isResting,
-            onLogSet: onLogSet,
+            isResting: widget.isResting,
+            onLogSet: widget.onLogSet,
           ),
         const SizedBox(height: AppSpacing.sm),
         Align(
           child: TextButton.icon(
-            onPressed: onToggleSkip,
+            onPressed: widget.onToggleSkip,
             icon: Icon(exercise.isSkipped ? Icons.undo : Icons.skip_next),
             label: Text(
               (exercise.isSkipped ? 'workout.unskip' : 'workout.skipExercise')
@@ -212,9 +226,16 @@ String _adviceText(Recommendation rec) => switch (rec.type) {
 };
 
 class _LoggedSetRow extends StatelessWidget {
-  const _LoggedSetRow({required this.set, this.onUndo});
+  const _LoggedSetRow({
+    required this.set,
+    required this.justLogged,
+    this.onUndo,
+  });
 
   final SetLog set;
+
+  /// Pops the check in, marking the set that was just completed.
+  final bool justLogged;
   final VoidCallback? onUndo;
 
   @override
@@ -233,7 +254,7 @@ class _LoggedSetRow extends StatelessWidget {
               Icons.check_circle,
               color: context.semanticColors.success,
               size: 20,
-            ),
+            ).pop(context, enabled: justLogged),
             const SizedBox(width: AppSpacing.sm),
             Text(
               'workout.setN'.tr(namedArgs: {'n': '${set.setNumber}'}),

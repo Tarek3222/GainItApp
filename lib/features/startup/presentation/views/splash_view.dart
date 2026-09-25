@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/route_paths.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
-import '../../../../app/theme/app_typography.dart';
 import '../../../../core/constants/app_info.dart';
 import '../../../../core/l10n/seed_names.dart';
 import '../../../../core/widgets/app_card.dart';
@@ -46,17 +45,106 @@ class SplashView extends StatelessWidget {
   }
 }
 
-class _Brand extends StatelessWidget {
+/// The logo gives a small pulse while the name rises in below. It sits in
+/// the same place and size as the native launch screen's logo, so the
+/// hand-over is seamless on iOS and Android before 12 (Android 12+ shows its
+/// own round icon first).
+class _Brand extends StatefulWidget {
   const _Brand();
+
+  /// The native splash logo is 512 px drawn for 4x screens.
+  static const logoSize = 128.0;
+
+  @override
+  State<_Brand> createState() => _BrandState();
+}
+
+class _BrandState extends State<_Brand> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _logoScale;
+  late final Animation<double> _nameOpacity;
+  late final Animation<Offset> _nameOffset;
+  bool _started = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _logoScale =
+        TweenSequence([
+          TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.08), weight: 1),
+          TweenSequenceItem(tween: Tween(begin: 1.08, end: 1.0), weight: 1),
+        ]).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0, 0.6, curve: Curves.easeInOut),
+          ),
+        );
+    final name = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.3, 1, curve: Curves.easeOutCubic),
+    );
+    _nameOpacity = name;
+    _nameOffset = Tween(
+      begin: const Offset(0, 0.4),
+      end: Offset.zero,
+    ).animate(name);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.value = 1;
+    } else {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Text(
-        AppInfo.name,
-        style: AppTypography.timer.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-        ),
+      child: Stack(
+        alignment: Alignment.center,
+        // The name sits below the logo, outside the stack's own size.
+        clipBehavior: Clip.none,
+        children: [
+          ScaleTransition(
+            scale: _logoScale,
+            child: Image.asset(
+              AppInfo.logoAsset,
+              width: _Brand.logoSize,
+              height: _Brand.logoSize,
+              excludeFromSemantics: true,
+            ),
+          ),
+          Transform.translate(
+            offset: const Offset(0, _Brand.logoSize / 2 + AppSpacing.xl),
+            child: FadeTransition(
+              opacity: _nameOpacity,
+              child: SlideTransition(
+                position: _nameOffset,
+                child: Text(
+                  AppInfo.name,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

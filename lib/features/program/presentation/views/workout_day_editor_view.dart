@@ -199,11 +199,12 @@ class _EditorBody extends StatelessWidget {
     }
 
     return ReorderableListView.builder(
-      padding: const EdgeInsets.fromLTRB(
+      // Leaves room for the navigation bar the list scrolls under.
+      padding: EdgeInsets.fromLTRB(
         AppSpacing.page,
         AppSpacing.sm,
         AppSpacing.page,
-        AppSpacing.xl,
+        AppSpacing.xl + MediaQuery.paddingOf(context).bottom,
       ),
       header: header,
       footer: Padding(

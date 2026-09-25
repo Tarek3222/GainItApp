@@ -80,6 +80,7 @@ void main() {
       dayChanges: _NoDayChanges(),
       media: FakeMediaStore(),
       steps: FakeStepCounter(access: StepAccess.denied),
+      splashMinimumDisplay: Duration.zero,
     );
   });
 
@@ -187,6 +188,9 @@ void main() {
       200,
       scrollable: profileList,
     );
+    // Lift it clear of the floating navigation bar before tapping.
+    await tester.ensureVisible(find.text('lb · ft'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('lb · ft'));
     await tester.pumpAndSettle();
     expect(storage.profile.values.single.unitSystem, UnitSystem.imperial);
@@ -330,6 +334,8 @@ void main() {
       300,
       scrollable: find.byType(Scrollable).first,
     );
+    await tester.ensureVisible(find.text('Add exercise'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Add exercise'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'hammer');

@@ -60,8 +60,13 @@ GoRouter createRouter({String initialLocation = RoutePaths.splash}) {
           child: const OnboardingView(),
         ),
       ),
-      StatefulShellRoute.indexedStack(
+      StatefulShellRoute(
         builder: (_, _, shell) => AppShell(shell: shell),
+        navigatorContainerBuilder: (_, shell, children) =>
+            FadingBranchContainer(
+              currentIndex: shell.currentIndex,
+              children: children,
+            ),
         branches: [
           StatefulShellBranch(
             routes: [

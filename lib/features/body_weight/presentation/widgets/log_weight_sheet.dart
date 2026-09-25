@@ -9,6 +9,7 @@ import '../../../../core/widgets/measure_wheel_picker.dart';
 Future<double?> showLogWeightSheet(BuildContext context, {double? initialKg}) {
   return showModalBottomSheet<double>(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     builder: (_) => _LogWeightSheet(initialKg: initialKg ?? 70),
   );

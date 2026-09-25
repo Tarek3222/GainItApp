@@ -66,22 +66,27 @@ class WorkoutOverviewView extends StatelessWidget {
           return Column(
             children: [
               Expanded(
-                child: switch (overview) {
-                  WorkoutOverview(day: WorkoutDay(isWorkout: false)) =>
-                    EmptyState(
-                      icon: Icons.bedtime_outlined,
-                      title: 'overview.restDay'.tr(),
-                      message: 'overview.restDayHint'.tr(),
-                      action: edit('overview.editDay'.tr()),
+                // The start button below already keeps clear of the bar.
+                child: MediaQuery.removePadding(
+                  context: context,
+                  removeBottom: canTrain || overview.isInProgress,
+                  child: switch (overview) {
+                    WorkoutOverview(day: WorkoutDay(isWorkout: false)) =>
+                      EmptyState(
+                        icon: Icons.bedtime_outlined,
+                        title: 'overview.restDay'.tr(),
+                        message: 'overview.restDayHint'.tr(),
+                        action: edit('overview.editDay'.tr()),
+                      ),
+                    WorkoutOverview(exercises: []) => EmptyState(
+                      icon: Icons.playlist_add,
+                      title: 'overview.noExercises'.tr(),
+                      message: 'overview.noExercisesHint'.tr(),
+                      action: edit('overview.editWorkout'.tr()),
                     ),
-                  WorkoutOverview(exercises: []) => EmptyState(
-                    icon: Icons.playlist_add,
-                    title: 'overview.noExercises'.tr(),
-                    message: 'overview.noExercisesHint'.tr(),
-                    action: edit('overview.editWorkout'.tr()),
-                  ),
-                  _ => _OverviewList(overview: overview),
-                },
+                    _ => _OverviewList(overview: overview),
+                  },
+                ),
               ),
               // An in-progress workout can always be resumed, even if the
               // day was edited meanwhile.

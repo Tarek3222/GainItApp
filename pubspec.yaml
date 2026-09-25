@@ -31,11 +31,14 @@ dependencies:
   video_player: ^2.14.0
   pedometer: ^4.2.0
   permission_handler: ^12.0.1
+  animations: ^3.0.0
 
 dev_dependencies:
   bloc_test: ^10.0.0
   build_runner: ^2.15.1
+  flutter_launcher_icons: ^0.14.4
   flutter_lints: ^6.0.0
+  flutter_native_splash: ^2.4.8
   flutter_test:
     sdk: flutter
   hive_ce_generator: ^1.11.2
@@ -50,6 +53,7 @@ flutter:
 
   assets:
     - assets/exercise_guides/
+    - assets/icon/splash_logo.png
     - assets/translations/
   fonts:
     - family: Poppins
@@ -73,3 +77,27 @@ flutter:
           weight: 600
         - asset: assets/fonts/cairo/Cairo-Bold.ttf
           weight: 700
+
+# App icon: `dart run flutter_launcher_icons` after changing assets/icon/.
+# The images are drawn by a script (a placeholder until a designed icon).
+flutter_launcher_icons:
+  image_path: assets/icon/app_icon.png
+  android: true
+  adaptive_icon_background: "#C8102E"
+  adaptive_icon_foreground: assets/icon/app_icon_foreground.png
+  # The foreground is already drawn inside the adaptive icon's safe zone.
+  adaptive_icon_foreground_inset: 0
+  adaptive_icon_monochrome: assets/icon/app_icon_foreground.png
+  ios: true
+  remove_alpha_ios: true
+
+# Native launch screen: `dart run flutter_native_splash:create` after
+# changing it. The app is always dark, so the splash is too; the in-app
+# splash (SplashView) continues from the same logo.
+flutter_native_splash:
+  color: "#0D0F12"
+  image: assets/icon/splash_logo.png
+  android_12:
+    color: "#0D0F12"
+    image: assets/icon/splash_android12.png
+    icon_background_color: "#C8102E"

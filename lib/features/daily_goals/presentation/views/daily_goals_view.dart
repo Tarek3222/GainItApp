@@ -80,6 +80,7 @@ Future<void> _addGoal(BuildContext context, List<DailyGoal> goals) async {
   final taken = {for (final g in goals) g.type};
   final type = await showModalBottomSheet<DailyGoalType>(
     context: context,
+    useRootNavigator: true,
     showDragHandle: true,
     builder: (sheetContext) => SafeArea(
       child: Column(

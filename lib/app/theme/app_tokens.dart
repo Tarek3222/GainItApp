@@ -35,6 +35,9 @@ abstract final class AppDurations {
   static const fast = Duration(milliseconds: 150);
   static const medium = Duration(milliseconds: 250);
   static const slow = Duration(milliseconds: 400);
+
+  /// Delay between items of a list that animates in one after another.
+  static const stagger = Duration(milliseconds: 40);
 }
 
 abstract final class AppShadows {

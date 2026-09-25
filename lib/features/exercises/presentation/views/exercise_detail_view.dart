@@ -365,6 +365,7 @@ class _MediaSection extends StatelessWidget {
     final isVideo = kind == ExerciseMediaKind.video;
     final source = await showModalBottomSheet<MediaSource>(
       context: context,
+      useRootNavigator: true,
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,

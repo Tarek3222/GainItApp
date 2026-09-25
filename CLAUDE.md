@@ -147,3 +147,9 @@ Product spec: `specs/GainIt_Project_Plan.md` (the spec's Riverpod/Drift choices 
 - Numbers use Western digits in both languages; dates follow the app language (`Formatters`).
 - Layout must work right to left: use `EdgeInsetsDirectional` / `AlignmentDirectional` for anything one-sided.
 - The language lives in the settings box (`SettingsKeys.languageCode`, `null` = phone language). Tests load English texts globally (`test/flutter_test_config.dart`); full-app tests wrap the app with `pumpLocalizedApp`.
+
+## Motion, navigation bar, icon and splash
+- Shared animations live in `core/widgets/motion.dart` (`entrance`, `pop`, `bump`, `EntranceGroup`). They use implicit animations (tickers), never timers or `flutter_animate`, so widget tests never leave timers pending. Every one respects `MediaQuery.disableAnimations` without changing the widget tree, so toggling the setting never resets state.
+- Page transitions come from the theme (`animations` package: shared-axis scaled on Android, Cupertino on iOS); tabs fade through in `FadingBranchContainer`. Don't add per-route transitions.
+- The bottom bar floats over the pages (`extendBody`). Scrolling content must pad its end by `MediaQuery.paddingOf(context).bottom`. `PageBody` already does, and shell pages use `SafeArea(bottom: false)`. Bottom sheets open with `useRootNavigator: true` so they cover the bar. A list above a bottom button that has its own `SafeArea` removes the bottom padding (`MediaQuery.removePadding`). In widget tests, `ensureVisible` an item before tapping it near the bottom.
+- The icon and native splash are generated from `assets/icon/` (a placeholder drawn by a script): `dart run flutter_launcher_icons`, then `dart run flutter_native_splash:create`. They generate platform files, not Dart code. After running them, revert `ios/Runner.xcodeproj/project.pbxproj`, because flutter_launcher_icons rewrites an unrelated build setting there.
